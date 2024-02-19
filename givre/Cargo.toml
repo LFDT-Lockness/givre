@@ -1,0 +1,42 @@
+[package]
+name = "givre"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cggmp21-keygen = { git = "https://github.com/dfns/cggmp21", branch = "spof", optional = true }
+key-share = { git = "https://github.com/dfns/cggmp21", branch = "spof" }
+
+generic-ec = { version = "0.1", default-features = false }
+
+rand_core = { version = "0.6", default-features = false }
+digest = { version = "0.10", default-features = false }
+
+round-based = { version = "0.2", default-features = false, features = ["derive"], optional = true }
+futures = { version = "0.3", default-features = false, features = [], optional = true }
+
+k256 = { version = "0.13", default-features = false, features = ["hash2curve"], optional = true }
+static_assertions = { version = "1.1", optional = true }
+sha2 = { version = "0.10", default-features = false, optional = true }
+
+[dev-dependencies]
+rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
+
+[features]
+cggmp21-keygen = ["dep:cggmp21-keygen"]
+full-signing = ["round-based", "futures"]
+
+spof = ["key-share/spof"]
+
+# Enabling this flag only makes the library compatible with these dependencies. Otherwise,
+# for instance, if `key-share` crate has `hd-wallets` feature enabled, but `givre` doesn't,
+# it'll fail to compile.
+#
+# Library doesn't have support of HD signing yet.
+hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
+
+all-curves = ["curve-secp256k1", "curve-ed25519"]
+curve-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
+curve-ed25519 = ["generic-ec/curve-ed25519", "sha2"]

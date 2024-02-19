@@ -1,0 +1,23 @@
+[package]
+name = "givre-tests"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+givre = { path = "../givre", features = ["all-curves", "cggmp21-keygen", "spof", "hd-wallets", "full-signing"] }
+
+generic-tests = "0.1"
+test-case = "3.3"
+rand_dev = "0.1"
+
+rand = "0.8"
+rand_core = "0.6"
+
+hex-literal = "0.4"
+
+tokio = { version = "1", features = ["macros", "rt"]}
+round-based = { version = "0.2", features = ["dev"] }
+futures = "0.3"

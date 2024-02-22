@@ -11,6 +11,7 @@ This crate provides:
   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
   (for easier usability and fool-proof design), see signing module for details.
 * Trusted dealer (importing key into TSS)
+* reconstruct_secret_key (exporting key from TSS)
 
 This crate doesn't support (currently):
 * Identifiable abort

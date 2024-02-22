@@ -104,7 +104,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "cggmp21-keygen"
 version = "0.1.0"
-source = "git+https://github.com/dfns/cggmp21?branch=spof#5ef39c9bcb62d189513e58884145fc34517b4892"
+source = "git+https://github.com/dfns/cggmp21?branch=spof#18ac63bfc1849cd01259440ae340e3a71d01ee69"
 dependencies = [
  "digest",
  "futures",
@@ -668,7 +668,7 @@ dependencies = [
 [[package]]
 name = "key-share"
 version = "0.1.0"
-source = "git+https://github.com/dfns/cggmp21?branch=spof#5ef39c9bcb62d189513e58884145fc34517b4892"
+source = "git+https://github.com/dfns/cggmp21?branch=spof#18ac63bfc1849cd01259440ae340e3a71d01ee69"
 dependencies = [
  "generic-ec",
  "generic-ec-zkp",

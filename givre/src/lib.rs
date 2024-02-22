@@ -11,6 +11,7 @@
 //!   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
 //!   (for easier usability and fool-proof design), see [mod@signing] module for details.
 //! * [Trusted dealer](trusted_dealer) (importing key into TSS)
+//! * [reconstruct_secret_key](key_share::reconstruct_secret_key) (exporting key from TSS)
 //!
 //! This crate doesn't support (currently):
 //! * Identifiable abort
@@ -39,6 +40,10 @@ pub mod key_share {
         CoreKeyShare as KeyShare, DirtyCoreKeyShare as DirtyKeyShare, DirtyKeyInfo,
         InvalidCoreShare as InvalidKeyShare, KeyInfo, Validate, VssSetup,
     };
+
+    #[cfg(feature = "spof")]
+    #[doc(inline)]
+    pub use key_share::reconstruct_secret_key;
 }
 
 /// Distributed Key Generation (DKG) protocol based on CGGMP21 paper

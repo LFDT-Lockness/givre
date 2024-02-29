@@ -3,6 +3,7 @@ mod generic {
     use std::iter;
 
     use givre::Ciphersuite;
+    use givre_tests::ExternalVerifier;
     use rand::{seq::SliceRandom, Rng};
 
     #[test_case::case(Some(2), 3; "t2n3")]
@@ -12,7 +13,7 @@ mod generic {
     #[test_case::case(Some(5), 5; "t5n5")]
     #[test_case::case(None, 5; "n5")]
     #[tokio::test]
-    async fn keygen_sign<C: Ciphersuite>(t: Option<u16>, n: u16) {
+    async fn keygen_sign<C: Ciphersuite + ExternalVerifier>(t: Option<u16>, n: u16) {
         let mut rng = rand_dev::DevRng::new();
 
         // --- Keygen
@@ -83,6 +84,7 @@ mod generic {
         sigs[0]
             .verify::<C>(&key_info.shared_public_key, &msg)
             .unwrap();
+        C::verify_sig(&key_info.shared_public_key, &sigs[0], &msg).unwrap();
 
         for sig in &sigs[1..] {
             assert_eq!(sigs[0].r, sig.r);

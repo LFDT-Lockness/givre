@@ -4,6 +4,7 @@ mod test_vectors;
 #[generic_tests::define(attrs(test_case::case))]
 mod generic {
     use givre::Ciphersuite;
+    use givre_tests::ExternalVerifier;
     use rand::{seq::SliceRandom, Rng};
 
     #[test_case::case(Some(2), 3; "t2n3")]
@@ -12,7 +13,7 @@ mod generic {
     #[test_case::case(Some(3), 5; "t3n5")]
     #[test_case::case(Some(5), 5; "t5n5")]
     #[test_case::case(None, 5; "n5")]
-    fn sign<C: Ciphersuite>(t: Option<u16>, n: u16) {
+    fn sign<C: Ciphersuite + ExternalVerifier>(t: Option<u16>, n: u16) {
         let mut rng = rand_dev::DevRng::new();
 
         // Emulate keygen via trusted dealer
@@ -68,6 +69,8 @@ mod generic {
 
         sig.verify::<C>(&key_info.shared_public_key, &message)
             .expect("invalid signature");
+        C::verify_sig(&key_info.shared_public_key, &sig, &message)
+            .expect("external verifier: invalid signature")
     }
 
     #[instantiate_tests(<givre::ciphersuite::Secp256k1>)]

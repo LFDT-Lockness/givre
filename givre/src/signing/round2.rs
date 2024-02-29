@@ -19,6 +19,11 @@ use super::{
 
 /// Partial signature
 #[derive(Debug, Copy, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(bound = "")
+)]
 pub struct SigShare<E: Curve>(pub Scalar<E>);
 
 /// Issues a partial signature on the `msg`

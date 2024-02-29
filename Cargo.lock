@@ -539,6 +539,7 @@ dependencies = [
  "key-share",
  "rand_core",
  "round-based",
+ "serde",
  "sha2",
  "static_assertions",
 ]

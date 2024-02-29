@@ -14,6 +14,12 @@ use crate::{Ciphersuite, SignerIndex};
 
 use super::{round1::PublicCommitments, round2::SigShare, utils};
 
+#[derive(Debug, Clone, Copy)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(bound = "")
+)]
 /// Schnorr Signature
 pub struct Signature<E: Curve> {
     /// $R$ component of the signature

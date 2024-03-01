@@ -72,13 +72,19 @@ pub fn compute_binding_factors<C: Ciphersuite>(
 /// [Section 4.5]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-group-commitment-computatio
 ///
 /// Differences compared to the draft:
-/// * Takes a single list of signers (represented as iterator) that contains their id,
-///   public commitments to the nonces, and the binding factor, where as the draft
-///   suggests to take two lists with the same information
-pub fn compute_group_commitment<E: Curve>(
-    signers_list: impl IntoIterator<Item = (NonZero<Scalar<E>>, PublicCommitments<E>, Scalar<E>)>,
+/// * Assumes that commitments and binding factors come in the same order, i.e. `commitment_list[i].0 == binding_factor_list[i].0`
+///   for all i. Assumtion is enforced via debug assertation.
+pub fn compute_group_commitment<'a, E: Curve>(
+    commitment_list: impl IntoIterator<Item = &'a (NonZero<Scalar<E>>, PublicCommitments<E>)>,
+    binding_factor_list: impl IntoIterator<Item = &'a (NonZero<Scalar<E>>, Scalar<E>)>,
 ) -> Point<E> {
-    signers_list
+    commitment_list
+        .into_iter()
+        .zip(binding_factor_list)
+        .map(|((i, comm), (_i, factor))| {
+            debug_assert_eq!(i, _i);
+            (*i, *comm, *factor)
+        })
         .into_iter()
         .fold(Point::zero(), |acc, (_i, comm, binding_factor)| {
             let binding_nonce = comm.binding_comm * binding_factor;

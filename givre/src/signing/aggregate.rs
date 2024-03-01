@@ -88,13 +88,7 @@ pub fn aggregate<C: Ciphersuite>(
     // --- The Aggregation
     let binding_factor_list =
         utils::compute_binding_factors::<C>(key_info.shared_public_key, &comm_list, msg);
-    let group_commitment =
-        utils::compute_group_commitment(comm_list.iter().zip(&binding_factor_list).map(
-            |((j, comm), (_j, factor))| {
-                debug_assert_eq!(j, _j);
-                (*j, *comm, *factor)
-            },
-        ));
+    let group_commitment = utils::compute_group_commitment(&comm_list, &binding_factor_list);
     let z = signers
         .iter()
         .map(|(_j, _comm, sig_share)| sig_share.0)

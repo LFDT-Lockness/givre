@@ -101,13 +101,7 @@ pub fn sign<C: Ciphersuite>(
     let binding_factor = binding_factor_list.get(i).ok_or(Bug::OwnBindingFactor)?.1;
     debug_assert_eq!(binding_factor_list[i].0, signer_id);
 
-    let group_commitment =
-        utils::compute_group_commitment(comm_list.iter().zip(&binding_factor_list).map(
-            |((i, comm), (_i, factor))| {
-                debug_assert_eq!(i, _i);
-                (*i, *comm, *factor)
-            },
-        ));
+    let group_commitment = utils::compute_group_commitment(&comm_list, &binding_factor_list);
 
     let signers_list = comm_list.iter().map(|(i, _)| *i).collect::<Vec<_>>();
     let lambda_i = if key_share.vss_setup.is_some() {

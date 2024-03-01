@@ -54,7 +54,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     /// Issues signature share
     ///
     /// Signer will output a signature share. It'll be more efficient than [generating a full signature](Self::sign),
-    /// but it requires you to send collect all sig shares in one place and [aggreate](crate::signing::aggregate::aggregate)
+    /// but it requires you to collect all sig shares in one place and [aggreate](crate::signing::aggregate::aggregate)
     /// them.
     pub async fn issue_sig_share<M, R>(
         self,

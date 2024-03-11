@@ -16,8 +16,19 @@ impl Ciphersuite for Secp256k1 {
         hash_to_scalar(msg, &[Self::NAME.as_bytes(), b"rho"])
     }
 
-    fn h2(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
-        hash_to_scalar(msg, &[Self::NAME.as_bytes(), b"chal"])
+    fn compute_challenge(
+        group_commitment: &generic_ec::Point<Self::Curve>,
+        group_public_key: &generic_ec::Point<Self::Curve>,
+        msg: &[u8],
+    ) -> generic_ec::Scalar<Self::Curve> {
+        hash_to_scalar(
+            &[
+                Self::serialize_point(group_commitment).as_ref(),
+                Self::serialize_point(group_public_key).as_ref(),
+                msg,
+            ],
+            &[Self::NAME.as_bytes(), b"chal"],
+        )
     }
 
     fn h3(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {

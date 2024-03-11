@@ -8,7 +8,7 @@
 
 use core::{fmt, iter};
 
-use generic_ec::{Curve, NonZero, Point, Scalar};
+use generic_ec::{Curve, NonZero, Scalar};
 
 use crate::{ciphersuite::Ciphersuite, KeyShare, SignerIndex};
 
@@ -111,7 +111,7 @@ pub fn sign<C: Ciphersuite>(
         Scalar::one()
     };
 
-    let challenge = compute_challenge::<C>(&group_commitment, &key_share.shared_public_key, msg);
+    let challenge = C::compute_challenge(&group_commitment, &key_share.shared_public_key, msg);
 
     Ok(SigShare(
         nonce.hiding_nonce
@@ -164,21 +164,6 @@ fn derive_interpolating_value<E: Curve>(
     }
 
     Some(num * denom.invert())
-}
-
-/// Computes a challenge as described in [Section 4.6]
-///
-/// [Section 4.6]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-signature-challenge-computa
-fn compute_challenge<C: Ciphersuite>(
-    group_commitment: &Point<C::Curve>,
-    group_pk: &Point<C::Curve>,
-    msg: &[u8],
-) -> Scalar<C::Curve> {
-    C::h2(&[
-        C::serialize_point(&group_commitment).as_ref(),
-        C::serialize_point(&group_pk).as_ref(),
-        msg,
-    ])
 }
 
 /// Signing error

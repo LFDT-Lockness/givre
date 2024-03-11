@@ -35,9 +35,7 @@ impl<E: Curve> Signature<E> {
         public_key: &Point<E>,
         msg: &[u8],
     ) -> Result<(), InvalidSignature> {
-        let comm_bytes = C::serialize_point(&self.r);
-        let pk_bytes = C::serialize_point(public_key);
-        let challenge = C::h2(&[comm_bytes.as_ref(), pk_bytes.as_ref(), msg]);
+        let challenge = C::compute_challenge(&self.r, &public_key, msg);
 
         let lhs = Point::generator() * &self.z;
         let rhs = self.r + public_key * challenge;

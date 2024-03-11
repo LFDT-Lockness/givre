@@ -42,11 +42,14 @@ pub trait Ciphersuite {
     /// Accepts a list of bytestring, that'll be contatenated before hashing.
     /// Returns `H1(data[0] || data[1] || ... || data[data.len() - 1])`.
     fn h1(msg: &[&[u8]]) -> Scalar<Self::Curve>;
-    /// `H2` hash function as defined in the draft
+    /// Computes the challenge according to Schnorr scheme
     ///
-    /// Accepts a list of bytestring, that'll be contatenated before hashing.
-    /// Returns `H2(data[0] || data[1] || ... || data[data.len() - 1])`.
-    fn h2(msg: &[&[u8]]) -> Scalar<Self::Curve>;
+    /// Implementation should be based on `H2` hash function as defined in the draft.
+    fn compute_challenge(
+        group_commitment: &Point<Self::Curve>,
+        group_public_key: &Point<Self::Curve>,
+        msg: &[u8],
+    ) -> Scalar<Self::Curve>;
     /// `H3` hash function as defined in the draft
     ///
     /// Accepts a list of bytestring, that'll be contatenated before hashing.

@@ -24,12 +24,16 @@ impl Ciphersuite for Ed25519 {
         generic_ec::Scalar::from_le_bytes_mod_order(hash)
     }
 
-    fn h2(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
-        let mut hash = sha2::Sha512::new();
-        for msg in msg {
-            hash.update(msg);
-        }
-        let hash = hash.finalize();
+    fn compute_challenge(
+        group_commitment: &generic_ec::Point<Self::Curve>,
+        group_public_key: &generic_ec::Point<Self::Curve>,
+        msg: &[u8],
+    ) -> generic_ec::Scalar<Self::Curve> {
+        let hash = sha2::Sha512::new()
+            .chain_update(Self::serialize_point(group_commitment))
+            .chain_update(Self::serialize_point(&group_public_key))
+            .chain_update(msg)
+            .finalize();
 
         generic_ec::Scalar::from_le_bytes_mod_order(hash)
     }

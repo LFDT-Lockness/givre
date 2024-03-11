@@ -3,22 +3,22 @@
 //! Ciphersuite specifies which curve and hash primitives to use during the signing.
 //!
 //! Out of the box, we provide ciphersuites defined the in the draft:
-//! * [Secp256k1], requires `curve-secp256k1` feature
-//! * [Ed25519], requires `curve-ed25519` feature
+//! * [Secp256k1], requires `ciphersuite-secp256k1` feature
+//! * [Ed25519], requires `ciphersuite-ed25519` feature
 use generic_ec::{
     errors::{InvalidPoint, InvalidScalar},
     Curve, Point, Scalar, SecretScalar,
 };
 use rand_core::{CryptoRng, RngCore};
 
-#[cfg(feature = "curve-ed25519")]
+#[cfg(feature = "ciphersuite-ed25519")]
 mod ed25519;
-#[cfg(feature = "curve-secp256k1")]
+#[cfg(feature = "ciphersuite-secp256k1")]
 mod secp256k1;
 
-#[cfg(feature = "curve-ed25519")]
+#[cfg(feature = "ciphersuite-ed25519")]
 pub use ed25519::Ed25519;
-#[cfg(feature = "curve-secp256k1")]
+#[cfg(feature = "ciphersuite-secp256k1")]
 pub use secp256k1::Secp256k1;
 
 /// Ciphersuite determines an underlying curve and set of cryptographic primitives

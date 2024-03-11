@@ -41,6 +41,6 @@ spof = ["key-share/spof"]
 # Library doesn't have support of HD signing yet.
 hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
 
-all-curves = ["curve-secp256k1", "curve-ed25519"]
-curve-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
-curve-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
+all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519"]
+ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
+ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]

@@ -8,9 +8,9 @@
 
 use core::fmt;
 
-use generic_ec::{Curve, Point, Scalar};
+use generic_ec::{Point, Scalar};
 
-use crate::{Ciphersuite, SignerIndex};
+use crate::{ciphersuite::NormalizedPoint, Ciphersuite, SignerIndex};
 
 use super::{round1::PublicCommitments, round2::SigShare, utils};
 
@@ -21,24 +21,24 @@ use super::{round1::PublicCommitments, round2::SigShare, utils};
     serde(bound = "")
 )]
 /// Schnorr Signature
-pub struct Signature<E: Curve> {
+pub struct Signature<C: Ciphersuite + ?Sized> {
     /// $R$ component of the signature
-    pub r: Point<E>,
+    pub r: crate::ciphersuite::NormalizedPoint<C>,
     /// $z$ component of the signature
-    pub z: Scalar<E>,
+    pub z: Scalar<C::Curve>,
 }
 
-impl<E: Curve> Signature<E> {
+impl<C: Ciphersuite> Signature<C> {
     /// Verifies signature against a public key and a message
-    pub fn verify<C: Ciphersuite<Curve = E>>(
+    pub fn verify(
         &self,
-        public_key: &Point<E>,
+        public_key: &NormalizedPoint<C>,
         msg: &[u8],
     ) -> Result<(), InvalidSignature> {
         let challenge = C::compute_challenge(&self.r, &public_key, msg);
 
         let lhs = Point::generator() * &self.z;
-        let rhs = self.r + public_key * challenge;
+        let rhs = *self.r + **public_key * challenge;
 
         if lhs == rhs {
             Ok(())
@@ -60,7 +60,7 @@ pub fn aggregate<C: Ciphersuite>(
     key_info: &crate::key_share::KeyInfo<C::Curve>,
     signers: &[(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
     msg: &[u8],
-) -> Result<Signature<C::Curve>, AggregateError> {
+) -> Result<Signature<C>, AggregateError> {
     // --- Retrieve and Validate Data
     let mut comm_list = signers
         .iter()
@@ -93,7 +93,7 @@ pub fn aggregate<C: Ciphersuite>(
         .sum();
 
     Ok(Signature {
-        r: group_commitment,
+        r: C::normalize_point(group_commitment),
         z,
     })
 }

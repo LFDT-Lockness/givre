@@ -25,13 +25,13 @@ impl Ciphersuite for Ed25519 {
     }
 
     fn compute_challenge(
-        group_commitment: &generic_ec::Point<Self::Curve>,
-        group_public_key: &generic_ec::Point<Self::Curve>,
+        group_commitment: &super::NormalizedPoint<Self>,
+        group_public_key: &super::NormalizedPoint<Self>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
         let hash = sha2::Sha512::new()
-            .chain_update(Self::serialize_point(group_commitment))
-            .chain_update(Self::serialize_point(&group_public_key))
+            .chain_update(Self::serialize_normalized_point(group_commitment))
+            .chain_update(Self::serialize_normalized_point(group_public_key))
             .chain_update(msg)
             .finalize();
 
@@ -80,5 +80,12 @@ impl Ciphersuite for Ed25519 {
         bytes: &[u8],
     ) -> Result<generic_ec::Scalar<Self::Curve>, generic_ec::errors::InvalidScalar> {
         generic_ec::Scalar::from_le_bytes(bytes)
+    }
+
+    type NormalizedPointBytes = Self::PointBytes;
+    fn serialize_normalized_point(
+        point: &super::NormalizedPoint<Self>,
+    ) -> Self::NormalizedPointBytes {
+        Self::serialize_point(point)
     }
 }

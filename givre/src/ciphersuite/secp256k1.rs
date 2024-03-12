@@ -17,14 +17,14 @@ impl Ciphersuite for Secp256k1 {
     }
 
     fn compute_challenge(
-        group_commitment: &generic_ec::Point<Self::Curve>,
-        group_public_key: &generic_ec::Point<Self::Curve>,
+        group_commitment: &super::NormalizedPoint<Self>,
+        group_public_key: &super::NormalizedPoint<Self>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
         hash_to_scalar(
             &[
-                Self::serialize_point(group_commitment).as_ref(),
-                Self::serialize_point(group_public_key).as_ref(),
+                Self::serialize_normalized_point(group_commitment).as_ref(),
+                Self::serialize_normalized_point(group_public_key).as_ref(),
                 msg,
             ],
             &[Self::NAME.as_bytes(), b"chal"],
@@ -65,6 +65,13 @@ impl Ciphersuite for Secp256k1 {
         bytes: &[u8],
     ) -> Result<generic_ec::Scalar<Self::Curve>, generic_ec::errors::InvalidScalar> {
         generic_ec::Scalar::from_be_bytes(bytes)
+    }
+
+    type NormalizedPointBytes = Self::PointBytes;
+    fn serialize_normalized_point(
+        point: &super::NormalizedPoint<Self>,
+    ) -> Self::NormalizedPointBytes {
+        Self::serialize_point(point)
     }
 }
 

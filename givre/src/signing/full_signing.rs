@@ -82,11 +82,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     }
 
     /// Executes Interactive Signing protocol
-    pub async fn sign<M, R>(
-        self,
-        party: M,
-        rng: &mut R,
-    ) -> Result<Signature<C::Curve>, FullSigningError>
+    pub async fn sign<M, R>(self, party: M, rng: &mut R) -> Result<Signature<C>, FullSigningError>
     where
         M: round_based::Mpc<ProtocolMessage = Msg<C::Curve>>,
         R: RngCore + CryptoRng,
@@ -116,7 +112,7 @@ async fn signing<C, M>(
     signers: &[SignerIndex],
     msg: &[u8],
     output_sig_share: bool,
-) -> Result<SigningOutput<C::Curve>, FullSigningError>
+) -> Result<SigningOutput<C>, FullSigningError>
 where
     C: Ciphersuite,
     M: round_based::Mpc<ProtocolMessage = Msg<C::Curve>>,
@@ -185,9 +181,9 @@ where
     Ok(SigningOutput::Signature(sig))
 }
 
-enum SigningOutput<E: Curve> {
-    Signature(Signature<E>),
-    SigShare(SigShare<E>),
+enum SigningOutput<C: Ciphersuite> {
+    Signature(Signature<C>),
+    SigShare(SigShare<C::Curve>),
 }
 
 /// Interactive Signing error

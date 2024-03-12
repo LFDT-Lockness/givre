@@ -162,7 +162,7 @@ impl<const T: usize, const N: usize> TestVector<T, N> {
             let r = C::deserialize_point(&self.expected_sig[0]).unwrap();
             let z = C::deserialize_scalar(&self.expected_sig[1]).unwrap();
 
-            assert_eq!(sig.r, r);
+            assert_eq!(*sig.r, r);
             assert_eq!(sig.z, z);
         }
     }

@@ -11,11 +11,15 @@ use generic_ec::{
 };
 use rand_core::{CryptoRng, RngCore};
 
+#[cfg(feature = "ciphersuite-bitcoin")]
+mod bitcoin;
 #[cfg(feature = "ciphersuite-ed25519")]
 mod ed25519;
 #[cfg(feature = "ciphersuite-secp256k1")]
 mod secp256k1;
 
+#[cfg(feature = "ciphersuite-bitcoin")]
+pub use bitcoin::Bitcoin;
 #[cfg(feature = "ciphersuite-ed25519")]
 pub use ed25519::Ed25519;
 #[cfg(feature = "ciphersuite-secp256k1")]
@@ -27,7 +31,7 @@ pub use secp256k1::Secp256k1;
 /// For the details, refer to [Section 6] of the draft
 ///
 /// [Section 6]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-ciphersuites
-pub trait Ciphersuite {
+pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     /// Name of the ciphersuite, also known as `contextString` in the draft
     const NAME: &'static str;
 
@@ -46,8 +50,8 @@ pub trait Ciphersuite {
     ///
     /// Implementation should be based on `H2` hash function as defined in the draft.
     fn compute_challenge(
-        group_commitment: &Point<Self::Curve>,
-        group_public_key: &Point<Self::Curve>,
+        group_commitment: &NormalizedPoint<Self>,
+        group_public_key: &NormalizedPoint<Self>,
         msg: &[u8],
     ) -> Scalar<Self::Curve>;
     /// `H3` hash function as defined in the draft
@@ -85,6 +89,39 @@ pub trait Ciphersuite {
         let mut scalar = Self::deserialize_scalar(bytes)?;
         Ok(SecretScalar::new(&mut scalar))
     }
+
+    /// Determines if the point is normalized according to the Schnorr scheme definition
+    ///
+    /// Some Schnorr schemes choose to work with X-only points such as public key and R-component
+    /// of the signature. To enable that, Y coordinate of the points must be unambiguous. There are
+    /// several ways of accomplishing that:
+    ///
+    /// 1. Implicitly choosing the Y coordinate that is in the lower half.
+    /// 2. Implicitly choosing the Y coordinate that is even.
+    /// 3. Implicitly choosing the Y coordinate that is a quadratic residue (i.e. has a square root modulo $p$).
+    ///
+    /// Our implementation of FROST requires that if point X isn't normalized, then $-X$ is normalized. Protocol
+    /// ensures that public key and R-component of the signature are always normalized.
+    ///
+    /// If Schnorr scheme doesn't have a notion of normalized points, this function should always return `true`.
+    fn is_normalized(point: &Point<Self::Curve>) -> bool {
+        let _ = point;
+        true
+    }
+    /// Normalizes the point
+    ///
+    /// Returns either `point` if it's already normalized, or `-point` otherwise. See [Ciphersuite::is_normalized]
+    /// for more details.
+    fn normalize_point(point: Point<Self::Curve>) -> NormalizedPoint<Self> {
+        match NormalizedPoint::<Self>::try_from(point) {
+            Ok(point) => point,
+            Err(point) => point,
+        }
+    }
+    /// Byte array that contains bytes representation of the normalized point
+    type NormalizedPointBytes: AsRef<[u8]>;
+    /// Serializes a normalized point
+    fn serialize_normalized_point(point: &NormalizedPoint<Self>) -> Self::NormalizedPointBytes;
 }
 
 /// Nonce generation as defined in [Section 4.1](https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-nonce-generation)
@@ -150,5 +187,108 @@ impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
     type Bytes<'b> = <T as AdditionalEntropy<C>>::Bytes<'b> where Self: 'b;
     fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
         (*self).to_bytes()
+    }
+}
+
+/// Normalized point
+#[derive(Debug, Clone, Copy)]
+pub struct NormalizedPoint<C: Ciphersuite>(Point<C::Curve>);
+
+impl<C: Ciphersuite> TryFrom<Point<C::Curve>> for NormalizedPoint<C> {
+    type Error = NormalizedPoint<C>;
+    fn try_from(point: Point<C::Curve>) -> Result<Self, Self> {
+        if C::is_normalized(&point) {
+            Ok(Self(point))
+        } else {
+            debug_assert!(C::is_normalized(&(-point)));
+            Err(Self(-point))
+        }
+    }
+}
+impl<C: Ciphersuite> core::ops::Deref for NormalizedPoint<C> {
+    type Target = Point<C::Curve>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+impl<C: Ciphersuite> core::cmp::PartialEq for NormalizedPoint<C> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+impl<C: Ciphersuite> core::cmp::Eq for NormalizedPoint<C> {}
+
+#[cfg(feature = "serde")]
+impl<C: Ciphersuite> serde::Serialize for NormalizedPoint<C> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // Normalized point is serialized as a regular point - we do not take advantage
+        // of shorter form is serde traits to keep impl simpler
+        (&**self).serialize(serializer)
+    }
+}
+#[cfg(feature = "serde")]
+impl<'de, C: Ciphersuite> serde::Deserialize<'de> for NormalizedPoint<C> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let point = Point::<C::Curve>::deserialize(deserializer)?;
+        NormalizedPoint::<C>::try_from(point)
+            .map_err(|_| <D::Error as serde::de::Error>::custom("point isn't normalized"))
+    }
+}
+
+/// Normalizes the key share
+///
+/// Some Schnorr signing schemes require public key to be [normalized](Ciphersuite::is_normalized), which means that if
+/// you use a generic key generation protocol, half of the times it'll output not normalized public key. You can use
+/// this function in order to normalize the key. Each signer must normalize their key share to make it work.
+pub fn normalize_key_share<C: Ciphersuite>(
+    key_share: crate::key_share::KeyShare<C::Curve>,
+) -> Result<crate::key_share::KeyShare<C::Curve>, NormalizeKeyShareError> {
+    use crate::key_share::Validate;
+
+    let Err(new_pk) = NormalizedPoint::<C>::try_from(key_share.shared_public_key) else {
+        // Public key is already normalized
+        return Ok(key_share);
+    };
+    let key_share = key_share.into_inner();
+
+    // PK is negated. Now we need to negate the key share, and each public key share
+    let new_sk = SecretScalar::new(&mut -(key_share.x.as_ref()));
+    let public_shares = key_share
+        .public_shares
+        .iter()
+        .map(|p| -p)
+        .collect::<Vec<_>>();
+
+    crate::key_share::DirtyKeyShare {
+        i: key_share.i,
+        key_info: crate::key_share::DirtyKeyInfo {
+            shared_public_key: *new_pk,
+            public_shares,
+            ..key_share.key_info
+        },
+        x: new_sk,
+    }
+    .validate()
+    .map_err(|e| NormalizeKeyShareError(e.into_error()))
+}
+
+/// Normalizing the key share failed
+#[derive(Debug)]
+pub struct NormalizeKeyShareError(crate::key_share::InvalidKeyShare);
+
+impl core::fmt::Display for NormalizeKeyShareError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("bug: output key share is invalid")
+    }
+}
+impl std::error::Error for NormalizeKeyShareError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
     }
 }

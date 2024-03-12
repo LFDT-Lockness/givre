@@ -23,8 +23,8 @@ impl Ciphersuite for Secp256k1 {
     ) -> generic_ec::Scalar<Self::Curve> {
         hash_to_scalar(
             &[
-                Self::serialize_normalized_point(group_commitment).as_ref(),
-                Self::serialize_normalized_point(group_public_key).as_ref(),
+                group_commitment.to_bytes().as_ref(),
+                group_public_key.to_bytes().as_ref(),
                 msg,
             ],
             &[Self::NAME.as_bytes(), b"chal"],

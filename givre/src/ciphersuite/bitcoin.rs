@@ -2,6 +2,12 @@ use super::{Ciphersuite, Secp256k1};
 
 /// FROST ciphersuite that outputs [BIP-340] compliant sigantures
 ///
+/// # Normalized public keys
+/// BIP-340 requires that public keys are normalized, meaning that they must have
+/// odd Y coordinate. Generic DKG protocols output public key with both even and odd
+/// Y coordinate. You can use [`normalize_key_share`](super::normalize_key_share)
+/// to normalize the key share after it's generated.
+///
 /// [BIP-340]: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 #[derive(Debug, Clone, Copy)]
 pub struct Bitcoin;
@@ -27,8 +33,8 @@ impl Ciphersuite for Bitcoin {
         });
         let challenge = HASH
             .clone()
-            .chain_update(Self::serialize_normalized_point(group_commitment))
-            .chain_update(Self::serialize_normalized_point(group_public_key))
+            .chain_update(group_commitment.to_bytes())
+            .chain_update(group_public_key.to_bytes())
             .chain_update(msg)
             .finalize();
         generic_ec::Scalar::from_be_bytes_mod_order(challenge)
@@ -75,7 +81,7 @@ impl Ciphersuite for Bitcoin {
         point: &super::NormalizedPoint<Self>,
     ) -> Self::NormalizedPointBytes {
         #[allow(clippy::expect_used)]
-        point.to_bytes(true)[1..]
+        (**point).to_bytes(true)[1..]
             .try_into()
             .expect("the size doesn't match")
     }

@@ -4,9 +4,10 @@
 //! [commit nonces](signing::round1) ahead of time), and identifiable abort.
 //!
 //! This crate provides:
-//! * Threshold and non-threshold Distributed Key Generation (DKG) \
+//! * Distributed Key Generation (DKG) \
 //!   Note that FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
-//!   when `cggmp21-keygen` feature is enabled. Alternatively, you can use any other UC-secure DKG protocol.
+//!   when `cggmp21-keygen` feature is enabled, which is a fairly reasonalbe choice as it's proven to be UC-secure.
+//!   Alternatively, you can use any other UC-secure DKG protocol.
 //! * FROST Signing \
 //!   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
 //!   (for easier usability and fool-proof design), see [mod@signing] module for details.

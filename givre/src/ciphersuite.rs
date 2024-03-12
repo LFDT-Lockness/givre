@@ -100,8 +100,11 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     /// 2. Implicitly choosing the Y coordinate that is even.
     /// 3. Implicitly choosing the Y coordinate that is a quadratic residue (i.e. has a square root modulo $p$).
     ///
-    /// Our implementation of FROST requires that if point X isn't normalized, then $-X$ is normalized. Protocol
-    /// ensures that public key and R-component of the signature are always normalized.
+    /// Our implementation of FROST requires that if point $X$ isn't normalized, then $-X$ is normalized. Note that
+    /// certain parts of the protocol may enforce this property via debug assertations.
+    ///
+    /// The protocol always outputs sigantures with normalized R-component. We also require that public key is
+    /// normalized. If it isn't, signing fails. You can use [`normalize_key_share`] function to normalize any key.
     ///
     /// If Schnorr scheme doesn't have a notion of normalized points, this function should always return `true`.
     fn is_normalized(point: &Point<Self::Curve>) -> bool {
@@ -120,7 +123,7 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     }
     /// Byte array that contains bytes representation of the normalized point
     type NormalizedPointBytes: AsRef<[u8]>;
-    /// Serializes a normalized point
+    /// Serializes a normalized point in a space-efficient manner as defined by Schnorr scheme
     fn serialize_normalized_point(point: &NormalizedPoint<Self>) -> Self::NormalizedPointBytes;
 }
 
@@ -191,11 +194,26 @@ impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
 }
 
 /// Normalized point
+///
+/// Point that satisfies [`Ciphersuite::is_normalized`].
 #[derive(Debug, Clone, Copy)]
 pub struct NormalizedPoint<C: Ciphersuite>(Point<C::Curve>);
 
+impl<C: Ciphersuite> NormalizedPoint<C> {
+    /// Serialzies the normalized point in a space-efficient manner
+    ///
+    /// Alias to [`Ciphersuite::serialize_normalized_point`]
+    pub fn to_bytes(&self) -> C::NormalizedPointBytes {
+        C::serialize_normalized_point(self)
+    }
+}
+
 impl<C: Ciphersuite> TryFrom<Point<C::Curve>> for NormalizedPoint<C> {
     type Error = NormalizedPoint<C>;
+
+    /// Normalizes the point
+    ///
+    /// Returns `Ok(point)` is point is already normalized, or `Err(-point)` otherwise.
     fn try_from(point: Point<C::Curve>) -> Result<Self, Self> {
         if C::is_normalized(&point) {
             Ok(Self(point))
@@ -225,7 +243,7 @@ impl<C: Ciphersuite> serde::Serialize for NormalizedPoint<C> {
         S: serde::Serializer,
     {
         // Normalized point is serialized as a regular point - we do not take advantage
-        // of shorter form is serde traits to keep impl simpler
+        // of shorter form in serde traits to keep impl simpler
         (**self).serialize(serializer)
     }
 }
@@ -243,12 +261,17 @@ impl<'de, C: Ciphersuite> serde::Deserialize<'de> for NormalizedPoint<C> {
 
 /// Normalizes the key share
 ///
-/// Some Schnorr signing schemes require public key to be [normalized](Ciphersuite::is_normalized), which means that if
-/// you use a generic key generation protocol, half of the times it'll output not normalized public key. You can use
-/// this function in order to normalize the key. Each signer must normalize their key share to make it work.
+/// Some Schnorr signing schemes require public key to be [normalized](Ciphersuite::is_normalized).
+/// Generally, DKG protocols output arbitrary public keys which are not necessarily normalized. If
+/// you want to use this key in the Schnorr scheme that requires public keys to be normalized, each
+/// key share needs to be normalized using this function.
+///
+/// ## Error
+/// Returns an error if output key share is inconsistent. That should never happen in practice. If
+/// it happened, it's probably a bug.
 pub fn normalize_key_share<C: Ciphersuite>(
     key_share: crate::key_share::KeyShare<C::Curve>,
-) -> Result<crate::key_share::KeyShare<C::Curve>, NormalizeKeyShareError> {
+) -> Result<crate::key_share::KeyShare<C::Curve>, crate::key_share::InvalidKeyShare> {
     use crate::key_share::Validate;
 
     let Err(new_pk) = NormalizedPoint::<C>::try_from(key_share.shared_public_key) else {
@@ -275,20 +298,5 @@ pub fn normalize_key_share<C: Ciphersuite>(
         x: new_sk,
     }
     .validate()
-    .map_err(|e| NormalizeKeyShareError(e.into_error()))
-}
-
-/// Normalizing the key share failed
-#[derive(Debug)]
-pub struct NormalizeKeyShareError(crate::key_share::InvalidKeyShare);
-
-impl core::fmt::Display for NormalizeKeyShareError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("bug: output key share is invalid")
-    }
-}
-impl std::error::Error for NormalizeKeyShareError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(&self.0)
-    }
+    .map_err(|e| e.into_error())
 }

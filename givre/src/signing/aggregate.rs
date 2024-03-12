@@ -35,9 +35,9 @@ impl<C: Ciphersuite> Signature<C> {
         public_key: &NormalizedPoint<C>,
         msg: &[u8],
     ) -> Result<(), InvalidSignature> {
-        let challenge = C::compute_challenge(&self.r, &public_key, msg);
+        let challenge = C::compute_challenge(&self.r, public_key, msg);
 
-        let lhs = Point::generator() * &self.z;
+        let lhs = Point::generator() * self.z;
         let rhs = *self.r + **public_key * challenge;
 
         if lhs == rhs {

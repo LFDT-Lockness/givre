@@ -82,7 +82,7 @@ mod generic {
             .zip(signers)
             .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
             .map(|((j, &index_at_keygen), (mut rng, party))| async move {
-                givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], &signers, &msg)
+                givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], signers, msg)
                     .sign(party, &mut rng)
                     .await
             });
@@ -92,8 +92,8 @@ mod generic {
                 .await
                 .unwrap();
 
-        sigs[0].verify(&pk, &msg).unwrap();
-        C::verify_sig(&pk, &sigs[0], &msg).unwrap();
+        sigs[0].verify(&pk, msg).unwrap();
+        C::verify_sig(&pk, &sigs[0], msg).unwrap();
 
         for sig in &sigs[1..] {
             assert_eq!(sigs[0].r, sig.r);

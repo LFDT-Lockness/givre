@@ -23,7 +23,7 @@ impl Ciphersuite for Bitcoin {
         use sha2::{Digest, Sha256};
         static HASH: once_cell::sync::Lazy<Sha256> = once_cell::sync::Lazy::new(|| {
             let tag = Sha256::digest("BIP0340/challenge");
-            Sha256::new().chain_update(&tag).chain_update(&tag)
+            Sha256::new().chain_update(tag).chain_update(tag)
         });
         let challenge = HASH
             .clone()
@@ -74,6 +74,7 @@ impl Ciphersuite for Bitcoin {
     fn serialize_normalized_point(
         point: &super::NormalizedPoint<Self>,
     ) -> Self::NormalizedPointBytes {
+        #[allow(clippy::expect_used)]
         point.to_bytes(true)[1..]
             .try_into()
             .expect("the size doesn't match")

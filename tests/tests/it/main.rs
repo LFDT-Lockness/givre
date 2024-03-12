@@ -73,7 +73,7 @@ mod generic {
             .expect("signing failed");
 
         // Round 3. Aggregate sig shares
-        let sig = givre::signing::aggregate::aggregate::<C>(&key_info, &partial_sigs, &message)
+        let sig = givre::signing::aggregate::aggregate::<C>(key_info, &partial_sigs, &message)
             .expect("aggregation failed");
 
         sig.verify(&pk, &message).expect("invalid signature");

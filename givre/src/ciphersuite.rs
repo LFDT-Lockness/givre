@@ -150,42 +150,42 @@ pub trait AdditionalEntropy<C: Ciphersuite> {
         Self: 'b;
 
     /// Returns bytes representation of the entropy encoded in complience with [`C`](Ciphersuite)
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b>;
+    fn to_bytes(&self) -> Self::Bytes<'_>;
 }
 
 impl<C: Ciphersuite<Curve = E>, E: Curve> AdditionalEntropy<C> for crate::KeyShare<E> {
     type Bytes<'b> = <SecretScalar<E> as AdditionalEntropy<C>>::Bytes<'b>;
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         AdditionalEntropy::<C>::to_bytes(&self.x)
     }
 }
 impl<C: Ciphersuite<Curve = E>, E: Curve> AdditionalEntropy<C> for generic_ec::Scalar<E> {
     type Bytes<'b> = C::ScalarBytes;
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         C::serialize_scalar(self)
     }
 }
 impl<C: Ciphersuite<Curve = E>, E: Curve> AdditionalEntropy<C> for generic_ec::SecretScalar<E> {
     type Bytes<'b> = <generic_ec::Scalar<E> as AdditionalEntropy<C>>::Bytes<'b>;
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         AdditionalEntropy::<C>::to_bytes(self.as_ref())
     }
 }
 impl<C: Ciphersuite> AdditionalEntropy<C> for [u8] {
     type Bytes<'b> = &'b [u8];
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         self
     }
 }
 impl<C: Ciphersuite, const N: usize> AdditionalEntropy<C> for [u8; N] {
     type Bytes<'b> = &'b [u8; N];
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         self
     }
 }
 impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
     type Bytes<'b> = <T as AdditionalEntropy<C>>::Bytes<'b> where Self: 'b;
-    fn to_bytes<'b>(&'b self) -> Self::Bytes<'b> {
+    fn to_bytes(&self) -> Self::Bytes<'_> {
         (*self).to_bytes()
     }
 }
@@ -226,7 +226,7 @@ impl<C: Ciphersuite> serde::Serialize for NormalizedPoint<C> {
     {
         // Normalized point is serialized as a regular point - we do not take advantage
         // of shorter form is serde traits to keep impl simpler
-        (&**self).serialize(serializer)
+        (**self).serialize(serializer)
     }
 }
 #[cfg(feature = "serde")]

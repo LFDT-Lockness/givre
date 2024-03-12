@@ -23,9 +23,9 @@ pub fn encode_group_commitment_list<C: Ciphersuite>(
         },
     ) in commitment_list
     {
-        output.update(C::serialize_scalar(&i).as_ref());
-        output.update(C::serialize_point(&hiding_comm).as_ref());
-        output.update(C::serialize_point(&binding_comm).as_ref());
+        output.update(C::serialize_scalar(i).as_ref());
+        output.update(C::serialize_point(hiding_comm).as_ref());
+        output.update(C::serialize_point(binding_comm).as_ref());
     }
     output
 }
@@ -59,7 +59,7 @@ pub fn compute_binding_factors<C: Ciphersuite>(
             pk_bytes.as_ref(),
             &msg_hash,
             &encoded_commitment_hash,
-            C::serialize_scalar(&i).as_ref(),
+            C::serialize_scalar(i).as_ref(),
         ]);
         binding_factor_list.push((*i, binding_factor))
     }
@@ -85,7 +85,6 @@ pub fn compute_group_commitment<'a, E: Curve>(
             debug_assert_eq!(i, _i);
             (*i, *comm, *factor)
         })
-        .into_iter()
         .fold(Point::zero(), |acc, (_i, comm, binding_factor)| {
             let binding_nonce = comm.binding_comm * binding_factor;
             acc + comm.hiding_comm + binding_nonce

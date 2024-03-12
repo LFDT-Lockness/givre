@@ -175,7 +175,7 @@ where
         .collect::<Vec<_>>();
 
     let key_info: &KeyInfo<_> = key_share.as_ref();
-    let sig = crate::signing::aggregate::aggregate::<C>(&key_info, &signers_list, msg)
+    let sig = crate::signing::aggregate::aggregate::<C>(key_info, &signers_list, msg)
         .map_err(Reason::Aggregate)?;
 
     Ok(SigningOutput::Signature(sig))

@@ -156,11 +156,11 @@ impl<const T: usize, const N: usize> TestVector<T, N> {
 
         // --- Aggregate
         let sig =
-            givre::signing::aggregate::aggregate::<C>(&key_info, &sig_shares, self.msg).unwrap();
+            givre::signing::aggregate::aggregate::<C>(key_info, &sig_shares, self.msg).unwrap();
 
         {
-            let r = C::deserialize_point(&self.expected_sig[0]).unwrap();
-            let z = C::deserialize_scalar(&self.expected_sig[1]).unwrap();
+            let r = C::deserialize_point(self.expected_sig[0]).unwrap();
+            let z = C::deserialize_scalar(self.expected_sig[1]).unwrap();
 
             assert_eq!(*sig.r, r);
             assert_eq!(sig.z, z);
@@ -303,7 +303,8 @@ fn mocked_randomness(bytes: &[u8]) -> impl RngCore + CryptoRng + '_ {
             rand_core::impls::next_u64_via_fill(self)
         }
         fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand::Error> {
-            Ok(self.fill_bytes(dest))
+            self.fill_bytes(dest);
+            Ok(())
         }
     }
     impl<'b> CryptoRng for MockedRng<'b> {}

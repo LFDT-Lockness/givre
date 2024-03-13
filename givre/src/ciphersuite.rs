@@ -231,7 +231,7 @@ impl<C: Ciphersuite, P: AsRef<Point<C::Curve>> + core::ops::Neg<Output = P>> Nor
         } else {
             let neg_point = -point;
             debug_assert!(C::is_normalized(neg_point.as_ref()));
-            Ok(Self(neg_point, Default::default()))
+            Err(Self(neg_point, Default::default()))
         }
     }
 }

@@ -69,11 +69,10 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), Self::InvalidSig> {
-        let pk =
-            secp256k1::XOnlyPublicKey::from_slice(Self::serialize_normalized_point(pk).as_ref())?;
+        let pk = secp256k1::XOnlyPublicKey::from_slice(pk.to_bytes().as_ref())?;
 
         let mut signature = [0u8; 64];
-        signature[..32].copy_from_slice(Self::serialize_normalized_point(&sig.r).as_ref());
+        signature[..32].copy_from_slice(sig.r.to_bytes().as_ref());
         signature[32..].copy_from_slice(Self::serialize_scalar(&sig.z).as_ref());
 
         let signature = secp256k1::schnorr::Signature::from_slice(&signature)?;

@@ -8,7 +8,7 @@
 
 use core::{fmt, iter};
 
-use generic_ec::{Curve, NonZero, Point, Scalar};
+use generic_ec::{Curve, NonZero, Scalar};
 
 use crate::{
     ciphersuite::{Ciphersuite, NormalizedPoint},
@@ -110,14 +110,14 @@ pub fn sign<C: Ciphersuite>(
     let nonce_share = nonce.hiding_nonce + (nonce.binding_nonce * binding_factor);
 
     let (group_commitment, nonce_share) = match NormalizedPoint::try_normalize(group_commitment) {
-        Ok(r) => {
+        Ok(group_commitment) => {
             // Signature is normalized, no need to do anything else
-            (r, nonce_share)
+            (group_commitment, nonce_share)
         }
-        Err(r) => {
-            // Signature is not normalized, we had to negate `r`. Each signer need to negate
+        Err(neg_group_commitment) => {
+            // Signature is not normalized, we had to negate `group_commitment`. Each signer need to negate
             // their `nonce_share` as well
-            (r, -nonce_share)
+            (neg_group_commitment, -nonce_share)
         }
     };
 

@@ -71,9 +71,9 @@ impl Ciphersuite for Bitcoin {
     }
 
     fn is_normalized(point: &generic_ec::Point<Self::Curve>) -> bool {
-        // First byte of compressed point is either 2 or 3. 2 means the Y coordinate is odd.
-        debug_assert!(matches!(point.to_bytes(true)[0], 2 | 3));
-        point.to_bytes(true)[0] == 2
+        // First byte of compressed non-zero point is either 2 or 3. 2 means the Y coordinate is odd.
+        debug_assert!(point.is_zero() || matches!(point.to_bytes(true)[0], 2 | 3));
+        point.is_zero() || point.to_bytes(true)[0] == 2
     }
 
     type NormalizedPointBytes = [u8; 32];

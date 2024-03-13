@@ -101,8 +101,9 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     /// 2. Implicitly choosing the Y coordinate that is even.
     /// 3. Implicitly choosing the Y coordinate that is a quadratic residue (i.e. has a square root modulo $p$).
     ///
-    /// Our implementation of FROST requires that if point $X$ isn't normalized, then $-X$ is normalized. Note that
-    /// certain parts of the protocol may enforce this property via debug assertations.
+    /// Our implementation of FROST requires that if point $X$ isn't normalized, then $-X$ is normalized. Zero point
+    /// (aka point at infinity) is always normalized. Note that certain parts of the protocol may enforce this property
+    /// via debug assertations.
     ///
     /// The protocol always outputs sigantures with normalized R-component. We also require that public key is
     /// normalized. If it isn't, signing fails. You can use [`normalize_key_share`] function to normalize any key.

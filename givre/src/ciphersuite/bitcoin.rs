@@ -1,3 +1,5 @@
+use generic_ec::{NonZero, Point};
+
 use super::{Ciphersuite, Secp256k1};
 
 /// FROST ciphersuite that outputs [BIP-340] compliant sigantures
@@ -22,8 +24,8 @@ impl Ciphersuite for Bitcoin {
     }
 
     fn compute_challenge(
-        group_commitment: &super::NormalizedPoint<Self>,
-        group_public_key: &super::NormalizedPoint<Self>,
+        group_commitment: &super::NormalizedPoint<Self, Point<Self::Curve>>,
+        group_public_key: &super::NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
         use sha2::{Digest, Sha256};
@@ -51,12 +53,12 @@ impl Ciphersuite for Bitcoin {
     }
 
     type PointBytes = <Secp256k1 as Ciphersuite>::PointBytes;
-    fn serialize_point(point: &generic_ec::Point<Self::Curve>) -> Self::PointBytes {
+    fn serialize_point(point: &Point<Self::Curve>) -> Self::PointBytes {
         Secp256k1::serialize_point(point)
     }
     fn deserialize_point(
         bytes: &[u8],
-    ) -> Result<generic_ec::Point<Self::Curve>, generic_ec::errors::InvalidPoint> {
+    ) -> Result<Point<Self::Curve>, generic_ec::errors::InvalidPoint> {
         Secp256k1::deserialize_point(bytes)
     }
 
@@ -70,18 +72,18 @@ impl Ciphersuite for Bitcoin {
         generic_ec::Scalar::from_be_bytes(bytes)
     }
 
-    fn is_normalized(point: &generic_ec::Point<Self::Curve>) -> bool {
+    fn is_normalized(point: &Point<Self::Curve>) -> bool {
         // First byte of compressed non-zero point is either 2 or 3. 2 means the Y coordinate is odd.
         debug_assert!(point.is_zero() || matches!(point.to_bytes(true)[0], 2 | 3));
         point.is_zero() || point.to_bytes(true)[0] == 2
     }
 
     type NormalizedPointBytes = [u8; 32];
-    fn serialize_normalized_point(
-        point: &super::NormalizedPoint<Self>,
+    fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
+        point: &super::NormalizedPoint<Self, P>,
     ) -> Self::NormalizedPointBytes {
         #[allow(clippy::expect_used)]
-        (**point).to_bytes(true)[1..]
+        point.as_ref().to_bytes(true)[1..]
             .try_into()
             .expect("the size doesn't match")
     }

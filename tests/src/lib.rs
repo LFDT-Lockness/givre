@@ -1,4 +1,9 @@
-use givre::{ciphersuite::NormalizedPoint, signing::aggregate::Signature, Ciphersuite};
+use givre::{
+    ciphersuite::NormalizedPoint,
+    generic_ec::{NonZero, Point},
+    signing::aggregate::Signature,
+    Ciphersuite,
+};
 
 pub trait ExternalVerifier: Ciphersuite {
     /// Although Schnorr scheme can sign messages of arbitrary size, external verifier may require that
@@ -8,7 +13,7 @@ pub trait ExternalVerifier: Ciphersuite {
     type InvalidSig: core::fmt::Debug;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self>,
+        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), Self::InvalidSig>;
@@ -21,7 +26,7 @@ impl ExternalVerifier for givre::ciphersuite::Ed25519 {
     type InvalidSig = ed25519::SignatureError;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self>,
+        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), ed25519::SignatureError> {
@@ -45,7 +50,7 @@ impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
     type InvalidSig = core::convert::Infallible;
 
     fn verify_sig(
-        _pk: &NormalizedPoint<Self>,
+        _pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         _sig: &Signature<Self>,
         _msg: &[u8],
     ) -> Result<(), Self::InvalidSig> {
@@ -60,7 +65,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
     type InvalidSig = secp256k1::Error;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self>,
+        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), Self::InvalidSig> {

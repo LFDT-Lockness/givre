@@ -39,7 +39,7 @@ pub fn encode_group_commitment_list<C: Ciphersuite>(
 ///
 /// Although it's not mentioned in the draft, but note that output list is sorted by signer ID.
 pub fn compute_binding_factors<C: Ciphersuite>(
-    shared_pk: Point<C::Curve>,
+    shared_pk: NonZero<Point<C::Curve>>,
     commitment_list: &[(NonZero<Scalar<C::Curve>>, PublicCommitments<C::Curve>)],
     msg: &[u8],
 ) -> Vec<(NonZero<Scalar<C::Curve>>, Scalar<C::Curve>)> {

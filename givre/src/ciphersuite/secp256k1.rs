@@ -1,4 +1,5 @@
 use digest::Digest;
+use generic_ec::{NonZero, Point};
 
 use crate::Ciphersuite;
 
@@ -17,8 +18,8 @@ impl Ciphersuite for Secp256k1 {
     }
 
     fn compute_challenge(
-        group_commitment: &super::NormalizedPoint<Self>,
-        group_public_key: &super::NormalizedPoint<Self>,
+        group_commitment: &super::NormalizedPoint<Self, Point<Self::Curve>>,
+        group_public_key: &super::NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
         hash_to_scalar(
@@ -48,13 +49,13 @@ impl Ciphersuite for Secp256k1 {
     }
 
     type PointBytes = generic_ec::EncodedPoint<Self::Curve>;
-    fn serialize_point(point: &generic_ec::Point<Self::Curve>) -> Self::PointBytes {
+    fn serialize_point(point: &Point<Self::Curve>) -> Self::PointBytes {
         point.to_bytes(true)
     }
     fn deserialize_point(
         bytes: &[u8],
-    ) -> Result<generic_ec::Point<Self::Curve>, generic_ec::errors::InvalidPoint> {
-        generic_ec::Point::from_bytes(bytes)
+    ) -> Result<Point<Self::Curve>, generic_ec::errors::InvalidPoint> {
+        Point::from_bytes(bytes)
     }
 
     type ScalarBytes = generic_ec::EncodedScalar<Self::Curve>;
@@ -68,10 +69,10 @@ impl Ciphersuite for Secp256k1 {
     }
 
     type NormalizedPointBytes = Self::PointBytes;
-    fn serialize_normalized_point(
-        point: &super::NormalizedPoint<Self>,
+    fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
+        point: &super::NormalizedPoint<Self, P>,
     ) -> Self::NormalizedPointBytes {
-        Self::serialize_point(point)
+        Self::serialize_point(point.as_ref())
     }
 }
 

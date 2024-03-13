@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { git = "https://github.com/dfns/cggmp21", branch = "spof", optional = true }
-key-share = { git = "https://github.com/dfns/cggmp21", branch = "spof" }
+cggmp21-keygen = { version = "0.1", optional = true }
+key-share = "0.2"
 
-generic-ec = { version = "0.1", default-features = false }
+generic-ec = { version = "0.2", default-features = false }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }

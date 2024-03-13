@@ -1,4 +1,5 @@
 use digest::Digest;
+use generic_ec::{NonZero, Point};
 
 use crate::Ciphersuite;
 
@@ -25,8 +26,8 @@ impl Ciphersuite for Ed25519 {
     }
 
     fn compute_challenge(
-        group_commitment: &super::NormalizedPoint<Self>,
-        group_public_key: &super::NormalizedPoint<Self>,
+        group_commitment: &super::NormalizedPoint<Self, Point<Self::Curve>>,
+        group_public_key: &super::NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
         let hash = sha2::Sha512::new()
@@ -83,9 +84,9 @@ impl Ciphersuite for Ed25519 {
     }
 
     type NormalizedPointBytes = Self::PointBytes;
-    fn serialize_normalized_point(
-        point: &super::NormalizedPoint<Self>,
+    fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
+        point: &super::NormalizedPoint<Self, P>,
     ) -> Self::NormalizedPointBytes {
-        Self::serialize_point(point)
+        Self::serialize_point(point.as_ref())
     }
 }

@@ -110,7 +110,8 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "cggmp21-keygen"
 version = "0.1.0"
-source = "git+https://github.com/dfns/cggmp21?branch=spof#18ac63bfc1849cd01259440ae340e3a71d01ee69"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2a502901b03b7a77e31348435318ed5e0c01193322c145211d265e4b973f98e"
 dependencies = [
  "digest",
  "futures",
@@ -472,8 +473,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec"
-version = "0.1.4"
-source = "git+https://github.com/dfns/generic-ec?branch=m#ba27154f93ec2502f71063056e1da35039140a69"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f315ffeaae6a05691c5a27028b4ae960d3a430e406d0109ff8502e2f84ae97b"
 dependencies = [
  "generic-ec-core",
  "generic-ec-curves",
@@ -489,8 +491,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-core"
-version = "0.1.2"
-source = "git+https://github.com/dfns/generic-ec?branch=m#ba27154f93ec2502f71063056e1da35039140a69"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22cab102fc88bfc017c16e69d21edae6f41ab58bfe69eed09ed0a2cf10ec923f"
 dependencies = [
  "generic-array",
  "rand_core",
@@ -501,8 +504,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-curves"
-version = "0.1.3"
-source = "git+https://github.com/dfns/generic-ec?branch=m#ba27154f93ec2502f71063056e1da35039140a69"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a133d38cde4fef7aea4e367ca51f291db0248495a424ec4208cdace08ba59f4"
 dependencies = [
  "crypto-bigint",
  "curve25519-dalek",
@@ -518,9 +522,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-zkp"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f98645d68f62951789a4aec46ef4416878c2827b2353f5267cf96b096eae60d9"
+checksum = "a9b631ea71fa0294e80d479c5b952e276776c9abf1b1a542b48e66b83fe1828c"
 dependencies = [
  "generic-array",
  "generic-ec",
@@ -702,8 +706,9 @@ dependencies = [
 
 [[package]]
 name = "key-share"
-version = "0.1.0"
-source = "git+https://github.com/dfns/cggmp21?branch=spof#18ac63bfc1849cd01259440ae340e3a71d01ee69"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05c746d847a566beecf3927cd9dcb60a6c61ca7d24845d8025974a97fa011918"
 dependencies = [
  "generic-ec",
  "generic-ec-zkp",
@@ -1083,9 +1088,9 @@ dependencies = [
 
 [[package]]
 name = "slip-10"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4670651d286d5714497971c12d36b83d75679c39da5d5ed757ff5e1e1d45855c"
+checksum = "f20f0918d675ab26ca9fa3e2c42548356f54b7a09fb4633313756522ddd59f75"
 dependencies = [
  "generic-array",
  "generic-ec",

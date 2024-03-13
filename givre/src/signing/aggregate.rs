@@ -8,7 +8,7 @@
 
 use core::fmt;
 
-use generic_ec::{Point, Scalar};
+use generic_ec::{NonZero, Point, Scalar};
 
 use crate::{ciphersuite::NormalizedPoint, Ciphersuite, SignerIndex};
 
@@ -23,7 +23,7 @@ use super::{round1::PublicCommitments, round2::SigShare, utils};
 /// Schnorr Signature
 pub struct Signature<C: Ciphersuite + ?Sized> {
     /// $R$ component of the signature
-    pub r: crate::ciphersuite::NormalizedPoint<C>,
+    pub r: crate::ciphersuite::NormalizedPoint<C, Point<C::Curve>>,
     /// $z$ component of the signature
     pub z: Scalar<C::Curve>,
 }
@@ -32,7 +32,7 @@ impl<C: Ciphersuite> Signature<C> {
     /// Verifies signature against a public key and a message
     pub fn verify(
         &self,
-        public_key: &NormalizedPoint<C>,
+        public_key: &NormalizedPoint<C, NonZero<Point<C::Curve>>>,
         msg: &[u8],
     ) -> Result<(), InvalidSignature> {
         let challenge = C::compute_challenge(&self.r, public_key, msg);

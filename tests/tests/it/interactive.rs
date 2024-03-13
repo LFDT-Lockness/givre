@@ -57,7 +57,7 @@ mod generic {
             .expect("normalize key share");
         let key_shares = key_shares.as_slice();
         let key_info: &givre::KeyInfo<_> = key_shares[0].as_ref();
-        let pk = NormalizedPoint::try_from(key_info.shared_public_key)
+        let pk = NormalizedPoint::try_normalize(key_info.shared_public_key)
             .expect("output public key isn't normalized");
 
         // --- Signing

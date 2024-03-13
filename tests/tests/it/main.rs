@@ -27,7 +27,7 @@ mod generic {
             .collect::<Result<Vec<_>, _>>()
             .expect("normalize key shares");
         let key_info: &givre::key_share::KeyInfo<_> = key_shares[0].as_ref();
-        let pk = NormalizedPoint::<C>::try_from(key_info.shared_public_key)
+        let pk = NormalizedPoint::try_normalize(key_info.shared_public_key)
             .expect("public key is not normalized");
 
         // List of indexes of signers who co-hold the key

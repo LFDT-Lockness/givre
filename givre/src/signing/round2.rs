@@ -8,7 +8,7 @@
 
 use core::{fmt, iter};
 
-use generic_ec::{Curve, NonZero, Scalar};
+use generic_ec::{Curve, NonZero, Point, Scalar};
 
 use crate::{
     ciphersuite::{Ciphersuite, NormalizedPoint},
@@ -48,7 +48,7 @@ pub fn sign<C: Ciphersuite>(
     signers: &[(SignerIndex, PublicCommitments<C::Curve>)],
 ) -> Result<SigShare<C::Curve>, SigningError> {
     // --- Retrieve and Validate Data
-    let pk = NormalizedPoint::<C>::try_from(key_share.shared_public_key)
+    let pk = NormalizedPoint::<C, _>::try_normalize(key_share.shared_public_key)
         .map_err(|_| Reason::ShareNotNormalized)?;
     if signers.len() < usize::from(key_share.min_signers()) {
         return Err(Reason::TooFewSigners {
@@ -109,7 +109,7 @@ pub fn sign<C: Ciphersuite>(
     let group_commitment = utils::compute_group_commitment(&comm_list, &binding_factor_list);
     let nonce_share = nonce.hiding_nonce + (nonce.binding_nonce * binding_factor);
 
-    let (group_commitment, nonce_share) = match NormalizedPoint::try_from(group_commitment) {
+    let (group_commitment, nonce_share) = match NormalizedPoint::try_normalize(group_commitment) {
         Ok(r) => {
             // Signature is normalized, no need to do anything else
             (r, nonce_share)

@@ -8,7 +8,7 @@
 //! * [Bitcoin], requires `ciphersuite-bitcoin` feature
 use generic_ec::{
     errors::{InvalidPoint, InvalidScalar},
-    Curve, Point, Scalar, SecretScalar,
+    Curve, NonZero, Point, Scalar, SecretScalar,
 };
 use rand_core::{CryptoRng, RngCore};
 
@@ -51,8 +51,8 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     ///
     /// Implementation should be based on `H2` hash function as defined in the draft.
     fn compute_challenge(
-        group_commitment: &NormalizedPoint<Self>,
-        group_public_key: &NormalizedPoint<Self>,
+        group_commitment: &NormalizedPoint<Self, Point<Self::Curve>>,
+        group_public_key: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         msg: &[u8],
     ) -> Scalar<Self::Curve>;
     /// `H3` hash function as defined in the draft
@@ -117,8 +117,10 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     ///
     /// Returns either `point` if it's already normalized, or `-point` otherwise. See [Ciphersuite::is_normalized]
     /// for more details.
-    fn normalize_point(point: Point<Self::Curve>) -> NormalizedPoint<Self> {
-        match NormalizedPoint::<Self>::try_from(point) {
+    fn normalize_point<P: AsRef<Point<Self::Curve>> + core::ops::Neg<Output = P>>(
+        point: P,
+    ) -> NormalizedPoint<Self, P> {
+        match NormalizedPoint::<Self, P>::try_normalize(point) {
             Ok(point) => point,
             Err(point) => point,
         }
@@ -126,7 +128,9 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     /// Byte array that contains bytes representation of the normalized point
     type NormalizedPointBytes: AsRef<[u8]>;
     /// Serializes a normalized point in a space-efficient manner as defined by Schnorr scheme
-    fn serialize_normalized_point(point: &NormalizedPoint<Self>) -> Self::NormalizedPointBytes;
+    fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
+        point: &NormalizedPoint<Self, P>,
+    ) -> Self::NormalizedPointBytes;
 }
 
 /// Nonce generation as defined in [Section 4.1](https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-nonce-generation)
@@ -176,6 +180,12 @@ impl<C: Ciphersuite<Curve = E>, E: Curve> AdditionalEntropy<C> for generic_ec::S
         AdditionalEntropy::<C>::to_bytes(self.as_ref())
     }
 }
+impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for generic_ec::NonZero<T> {
+    type Bytes<'b> = <T as AdditionalEntropy<C>>::Bytes<'b> where Self: 'b;
+    fn to_bytes(&self) -> Self::Bytes<'_> {
+        AdditionalEntropy::<C>::to_bytes(self.as_ref())
+    }
+}
 impl<C: Ciphersuite> AdditionalEntropy<C> for [u8] {
     type Bytes<'b> = &'b [u8];
     fn to_bytes(&self) -> Self::Bytes<'_> {
@@ -197,11 +207,12 @@ impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
 
 /// Normalized point
 ///
-/// Point that satisfies [`Ciphersuite::is_normalized`].
+/// Point that satisfies [`Ciphersuite::is_normalized`]. Can wrap both `Point<E>` and
+/// `NonZero<Point<E>>`.
 #[derive(Debug, Clone, Copy)]
-pub struct NormalizedPoint<C: Ciphersuite>(Point<C::Curve>);
+pub struct NormalizedPoint<C, P>(P, core::marker::PhantomData<C>);
 
-impl<C: Ciphersuite> NormalizedPoint<C> {
+impl<C: Ciphersuite, P: AsRef<Point<C::Curve>>> NormalizedPoint<C, P> {
     /// Serialzies the normalized point in a space-efficient manner
     ///
     /// Alias to [`Ciphersuite::serialize_normalized_point`]
@@ -210,36 +221,44 @@ impl<C: Ciphersuite> NormalizedPoint<C> {
     }
 }
 
-impl<C: Ciphersuite> TryFrom<Point<C::Curve>> for NormalizedPoint<C> {
-    type Error = NormalizedPoint<C>;
-
+impl<C: Ciphersuite, P: AsRef<Point<C::Curve>> + core::ops::Neg<Output = P>> NormalizedPoint<C, P> {
     /// Normalizes the point
     ///
     /// Returns `Ok(point)` is point is already normalized, or `Err(-point)` otherwise.
-    fn try_from(point: Point<C::Curve>) -> Result<Self, Self> {
-        if C::is_normalized(&point) {
-            Ok(Self(point))
+    pub fn try_normalize(point: P) -> Result<Self, Self> {
+        if point.as_ref().is_zero() || C::is_normalized(point.as_ref()) {
+            Ok(Self(point, Default::default()))
         } else {
-            debug_assert!(C::is_normalized(&(-point)));
-            Err(Self(-point))
+            let neg_point = -point;
+            debug_assert!(C::is_normalized(neg_point.as_ref()));
+            Ok(Self(neg_point, Default::default()))
         }
     }
 }
-impl<C: Ciphersuite> core::ops::Deref for NormalizedPoint<C> {
-    type Target = Point<C::Curve>;
+
+impl<C, P> core::ops::Deref for NormalizedPoint<C, P> {
+    type Target = P;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
-impl<C: Ciphersuite> core::cmp::PartialEq for NormalizedPoint<C> {
+impl<C, P, T> AsRef<T> for NormalizedPoint<C, P>
+where
+    P: AsRef<T>,
+{
+    fn as_ref(&self) -> &T {
+        self.0.as_ref()
+    }
+}
+impl<C, P: core::cmp::PartialEq> core::cmp::PartialEq for NormalizedPoint<C, P> {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
 }
-impl<C: Ciphersuite> core::cmp::Eq for NormalizedPoint<C> {}
+impl<C, P: core::cmp::Eq> core::cmp::Eq for NormalizedPoint<C, P> {}
 
 #[cfg(feature = "serde")]
-impl<C: Ciphersuite> serde::Serialize for NormalizedPoint<C> {
+impl<C, P: serde::Serialize> serde::Serialize for NormalizedPoint<C, P> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -250,13 +269,17 @@ impl<C: Ciphersuite> serde::Serialize for NormalizedPoint<C> {
     }
 }
 #[cfg(feature = "serde")]
-impl<'de, C: Ciphersuite> serde::Deserialize<'de> for NormalizedPoint<C> {
+impl<'de, C, P> serde::Deserialize<'de> for NormalizedPoint<C, P>
+where
+    C: Ciphersuite,
+    P: AsRef<Point<C::Curve>> + serde::Deserialize<'de> + core::ops::Neg<Output = P>,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        let point = Point::<C::Curve>::deserialize(deserializer)?;
-        NormalizedPoint::<C>::try_from(point)
+        let point = P::deserialize(deserializer)?;
+        NormalizedPoint::<C, P>::try_normalize(point)
             .map_err(|_| <D::Error as serde::de::Error>::custom("point isn't normalized"))
     }
 }
@@ -276,15 +299,16 @@ pub fn normalize_key_share<C: Ciphersuite>(
 ) -> Result<crate::key_share::KeyShare<C::Curve>, crate::key_share::InvalidKeyShare> {
     use crate::key_share::Validate;
 
-    let Err(new_pk) = NormalizedPoint::<C>::try_from(key_share.shared_public_key) else {
+    let Err(new_pk) = NormalizedPoint::<C, _>::try_normalize(key_share.shared_public_key) else {
         // Public key is already normalized
         return Ok(key_share);
     };
     let key_share = key_share.into_inner();
 
     // PK is negated. Now we need to negate the key share, and each public key share
-    let new_sk = SecretScalar::new(&mut -(key_share.x.as_ref()));
+    let new_sk = -key_share.x;
     let public_shares = key_share
+        .key_info
         .public_shares
         .iter()
         .map(|p| -p)

@@ -33,6 +33,7 @@ impl<const T: usize, const N: usize> TestVector<T, N> {
         let (t, n): (u16, u16) = (T.try_into().unwrap(), N.try_into().unwrap());
 
         let public_key = C::deserialize_point(self.public_key).unwrap();
+        let public_key = NonZero::from_point(public_key).unwrap();
         {
             let secret_key = C::deserialize_secret_scalar(self.secret_key).unwrap();
             assert_eq!(Point::generator() * &secret_key, public_key);
@@ -40,7 +41,8 @@ impl<const T: usize, const N: usize> TestVector<T, N> {
 
         let shares = self
             .shares
-            .map(|share| C::deserialize_secret_scalar(share).unwrap());
+            .map(|share| C::deserialize_secret_scalar(share).unwrap())
+            .map(|share| NonZero::from_secret_scalar(share).unwrap());
         let public_shares = shares
             .clone()
             .map(|share| Point::generator() * share)

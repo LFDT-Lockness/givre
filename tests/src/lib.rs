@@ -7,7 +7,7 @@ use givre::{
 
 pub trait ExternalVerifier: Ciphersuite {
     /// Although Schnorr scheme can sign messages of arbitrary size, external verifier may require that
-    /// message to be signed to be hashed
+    /// the message needs to be an output of a hash function with fixed size
     const REQUIRED_MESSAGE_SIZE: Option<usize> = None;
 
     type InvalidSig: core::fmt::Debug;

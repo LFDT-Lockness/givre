@@ -326,3 +326,13 @@ pub fn normalize_key_share<C: Ciphersuite>(
     .validate()
     .map_err(|e| e.into_error())
 }
+
+/// Checks whether `key_share` is normalized
+///
+/// `key_share` must be normalized, otherwise the signing will return error. See [`Ciphersuite::is_normalized`]
+/// for more details.
+pub fn is_key_share_normalized<C: Ciphersuite>(
+    key_share: &crate::key_share::KeyShare<C::Curve>,
+) -> bool {
+    C::is_normalized(&key_share.shared_public_key)
+}

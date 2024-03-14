@@ -2,9 +2,9 @@
 mod generic {
     use std::iter;
 
-    use givre::Ciphersuite;
+    use givre::{ciphersuite::NormalizedPoint, Ciphersuite};
     use givre_tests::ExternalVerifier;
-    use rand::{seq::SliceRandom, Rng};
+    use rand::{seq::SliceRandom, Rng, RngCore};
 
     #[test_case::case(Some(2), 3; "t2n3")]
     #[test_case::case(Some(3), 3; "t3n3")]
@@ -49,13 +49,24 @@ mod generic {
             futures::future::try_join_all(keygen_executions)
                 .await
                 .unwrap();
+        // Normalize key shares
+        let key_shares = key_shares
+            .into_iter()
+            .map(givre::ciphersuite::normalize_key_share::<C>)
+            .collect::<Result<Vec<_>, _>>()
+            .expect("normalize key share");
         let key_shares = key_shares.as_slice();
         let key_info: &givre::KeyInfo<_> = key_shares[0].as_ref();
+        let pk = NormalizedPoint::try_normalize(key_info.shared_public_key)
+            .expect("output public key isn't normalized");
 
         // --- Signing
 
         // message to be signed
-        let msg: [u8; 29] = rng.gen();
+        let msg_len = C::REQUIRED_MESSAGE_SIZE.unwrap_or_else(|| rng.gen_range(20..=100));
+        let mut msg = vec![0u8; msg_len];
+        rng.fill_bytes(&mut msg);
+        let msg = &msg;
 
         // Choose `t` signers to do signing
         let t = t.unwrap_or(n);
@@ -71,7 +82,7 @@ mod generic {
             .zip(signers)
             .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
             .map(|((j, &index_at_keygen), (mut rng, party))| async move {
-                givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], &signers, &msg)
+                givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], signers, msg)
                     .sign(party, &mut rng)
                     .await
             });
@@ -81,10 +92,8 @@ mod generic {
                 .await
                 .unwrap();
 
-        sigs[0]
-            .verify::<C>(&key_info.shared_public_key, &msg)
-            .unwrap();
-        C::verify_sig(&key_info.shared_public_key, &sigs[0], &msg).unwrap();
+        sigs[0].verify(&pk, msg).unwrap();
+        C::verify_sig(&pk, &sigs[0], msg).unwrap();
 
         for sig in &sigs[1..] {
             assert_eq!(sigs[0].r, sig.r);
@@ -92,6 +101,8 @@ mod generic {
         }
     }
 
+    #[instantiate_tests(<givre::ciphersuite::Bitcoin>)]
+    mod bitcoin {}
     #[instantiate_tests(<givre::ciphersuite::Secp256k1>)]
     mod secp256k1 {}
     #[instantiate_tests(<givre::ciphersuite::Ed25519>)]

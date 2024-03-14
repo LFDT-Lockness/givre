@@ -6,10 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { git = "https://github.com/dfns/cggmp21", branch = "spof", optional = true }
-key-share = { git = "https://github.com/dfns/cggmp21", branch = "spof" }
+cggmp21-keygen = { version = "0.1", optional = true }
+key-share = "0.2"
 
-generic-ec = { version = "0.1", default-features = false }
+generic-ec = { version = "0.2", default-features = false }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }
@@ -41,6 +41,7 @@ spof = ["key-share/spof"]
 # Library doesn't have support of HD signing yet.
 hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
 
-all-curves = ["curve-secp256k1", "curve-ed25519"]
-curve-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
-curve-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
+all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
+ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
+ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
+ciphersuite-bitcoin = ["ciphersuite-secp256k1"]

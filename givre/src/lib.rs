@@ -4,9 +4,10 @@
 //! [commit nonces](signing::round1) ahead of time), and identifiable abort.
 //!
 //! This crate provides:
-//! * Threshold and non-threshold Distributed Key Generation (DKG) \
+//! * Distributed Key Generation (DKG) \
 //!   Note that FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
-//!   when `cggmp21-keygen` feature is enabled. Alternatively, you can use any other UC-secure DKG protocol.
+//!   when `cggmp21-keygen` feature is enabled, which is a fairly reasonalbe choice as it's proven to be UC-secure.
+//!   Alternatively, you can use any other UC-secure DKG protocol.
 //! * FROST Signing \
 //!   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
 //!   (for easier usability and fool-proof design), see [mod@signing] module for details.
@@ -19,9 +20,10 @@
 //! [CGGMP21]: https://github.com/dfns/cggmp21
 //! [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html
 
-#![forbid(unsafe_code)]
+#![forbid(unsafe_code, unused_crate_dependencies)]
 #![deny(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 #![deny(missing_docs)]
+#![allow(clippy::type_complexity)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
 pub use generic_ec;
@@ -75,9 +77,9 @@ pub use cggmp21_keygen::keygen;
 /// ```rust,no_run
 /// # use rand_core::OsRng;
 /// # let mut rng = OsRng;
-/// use givre::generic_ec::{curves::Secp256k1, SecretScalar};
+/// use givre::generic_ec::{curves::Secp256k1, SecretScalar, NonZero};
 ///
-/// let secret_key_to_be_imported = SecretScalar::<Secp256k1>::random(&mut rng);
+/// let secret_key_to_be_imported = NonZero::<SecretScalar<Secp256k1>>::random(&mut rng);
 ///
 /// let key_shares = givre::trusted_dealer::builder::<Secp256k1>(5)
 ///     .set_threshold(Some(3))

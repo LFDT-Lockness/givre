@@ -8,9 +8,12 @@
 
 use core::{fmt, iter};
 
-use generic_ec::{Curve, NonZero, Point, Scalar};
+use generic_ec::{Curve, NonZero, Scalar};
 
-use crate::{ciphersuite::Ciphersuite, KeyShare, SignerIndex};
+use crate::{
+    ciphersuite::{Ciphersuite, NormalizedPoint},
+    KeyShare, SignerIndex,
+};
 
 use super::{
     round1::{PublicCommitments, SecretNonces},
@@ -45,6 +48,8 @@ pub fn sign<C: Ciphersuite>(
     signers: &[(SignerIndex, PublicCommitments<C::Curve>)],
 ) -> Result<SigShare<C::Curve>, SigningError> {
     // --- Retrieve and Validate Data
+    let pk = NormalizedPoint::<C, _>::try_normalize(key_share.shared_public_key)
+        .map_err(|_| Reason::ShareNotNormalized)?;
     if signers.len() < usize::from(key_share.min_signers()) {
         return Err(Reason::TooFewSigners {
             min_signers: key_share.min_signers(),
@@ -102,6 +107,19 @@ pub fn sign<C: Ciphersuite>(
     debug_assert_eq!(binding_factor_list[i].0, signer_id);
 
     let group_commitment = utils::compute_group_commitment(&comm_list, &binding_factor_list);
+    let nonce_share = nonce.hiding_nonce + (nonce.binding_nonce * binding_factor);
+
+    let (group_commitment, nonce_share) = match NormalizedPoint::try_normalize(group_commitment) {
+        Ok(group_commitment) => {
+            // Signature is normalized, no need to do anything else
+            (group_commitment, nonce_share)
+        }
+        Err(neg_group_commitment) => {
+            // Signature is not normalized, we had to negate `group_commitment`. Each signer need to negate
+            // their `nonce_share` as well
+            (neg_group_commitment, -nonce_share)
+        }
+    };
 
     let signers_list = comm_list.iter().map(|(i, _)| *i).collect::<Vec<_>>();
     let lambda_i = if key_share.vss_setup.is_some() {
@@ -111,12 +129,10 @@ pub fn sign<C: Ciphersuite>(
         Scalar::one()
     };
 
-    let challenge = compute_challenge::<C>(&group_commitment, &key_share.shared_public_key, msg);
+    let challenge = C::compute_challenge(&group_commitment, &pk, msg);
 
     Ok(SigShare(
-        nonce.hiding_nonce
-            + (nonce.binding_nonce * binding_factor)
-            + (lambda_i * &key_share.x * challenge),
+        nonce_share + (lambda_i * &key_share.x * challenge),
     ))
 }
 
@@ -166,27 +182,13 @@ fn derive_interpolating_value<E: Curve>(
     Some(num * denom.invert())
 }
 
-/// Computes a challenge as described in [Section 4.6]
-///
-/// [Section 4.6]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-signature-challenge-computa
-fn compute_challenge<C: Ciphersuite>(
-    group_commitment: &Point<C::Curve>,
-    group_pk: &Point<C::Curve>,
-    msg: &[u8],
-) -> Scalar<C::Curve> {
-    C::h2(&[
-        C::serialize_point(&group_commitment).as_ref(),
-        C::serialize_point(&group_pk).as_ref(),
-        msg,
-    ])
-}
-
 /// Signing error
 #[derive(Debug)]
 pub struct SigningError(Reason);
 
 #[derive(Debug)]
 enum Reason {
+    ShareNotNormalized,
     TooFewSigners { min_signers: u16, n: usize },
     UnknownSigner(SignerIndex),
     SameSignerTwice,
@@ -205,6 +207,7 @@ enum Bug {
 impl fmt::Display for SigningError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
+            Reason::ShareNotNormalized => f.write_str("key share is not normalized, see the docs"),
             Reason::TooFewSigners { min_signers, n } => write!(
                 f,
                 "signers list contains {n} singners, although at \
@@ -239,7 +242,8 @@ impl fmt::Display for Bug {
 impl std::error::Error for SigningError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
-            Reason::TooFewSigners { .. }
+            Reason::ShareNotNormalized
+            | Reason::TooFewSigners { .. }
             | Reason::UnknownSigner(_)
             | Reason::NoncesDontMatchComm
             | Reason::DeriveInterpolationValue

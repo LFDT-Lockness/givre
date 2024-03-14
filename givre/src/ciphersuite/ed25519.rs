@@ -1,4 +1,5 @@
 use digest::Digest;
+use generic_ec::{NonZero, Point};
 
 use crate::Ciphersuite;
 
@@ -24,12 +25,16 @@ impl Ciphersuite for Ed25519 {
         generic_ec::Scalar::from_le_bytes_mod_order(hash)
     }
 
-    fn h2(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
-        let mut hash = sha2::Sha512::new();
-        for msg in msg {
-            hash.update(msg);
-        }
-        let hash = hash.finalize();
+    fn compute_challenge(
+        group_commitment: &super::NormalizedPoint<Self, Point<Self::Curve>>,
+        group_public_key: &super::NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
+        msg: &[u8],
+    ) -> generic_ec::Scalar<Self::Curve> {
+        let hash = sha2::Sha512::new()
+            .chain_update(Self::serialize_normalized_point(group_commitment))
+            .chain_update(Self::serialize_normalized_point(group_public_key))
+            .chain_update(msg)
+            .finalize();
 
         generic_ec::Scalar::from_le_bytes_mod_order(hash)
     }
@@ -76,5 +81,12 @@ impl Ciphersuite for Ed25519 {
         bytes: &[u8],
     ) -> Result<generic_ec::Scalar<Self::Curve>, generic_ec::errors::InvalidScalar> {
         generic_ec::Scalar::from_le_bytes(bytes)
+    }
+
+    type NormalizedPointBytes = Self::PointBytes;
+    fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
+        point: &super::NormalizedPoint<Self, P>,
+    ) -> Self::NormalizedPointBytes {
+        Self::serialize_point(point.as_ref())
     }
 }

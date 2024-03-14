@@ -1,4 +1,5 @@
 use generic_ec::{NonZero, Point};
+use sha2::Digest;
 
 use super::{Ciphersuite, Secp256k1};
 
@@ -28,13 +29,7 @@ impl Ciphersuite for Bitcoin {
         group_public_key: &super::NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
         msg: &[u8],
     ) -> generic_ec::Scalar<Self::Curve> {
-        use sha2::{Digest, Sha256};
-        static HASH: once_cell::sync::Lazy<Sha256> = once_cell::sync::Lazy::new(|| {
-            let tag = Sha256::digest("BIP0340/challenge");
-            Sha256::new().chain_update(tag).chain_update(tag)
-        });
-        let challenge = HASH
-            .clone()
+        let challenge = challenge_hash()
             .chain_update(group_commitment.to_bytes())
             .chain_update(group_public_key.to_bytes())
             .chain_update(msg)
@@ -87,4 +82,14 @@ impl Ciphersuite for Bitcoin {
             .try_into()
             .expect("the size doesn't match")
     }
+}
+
+fn challenge_hash() -> sha2::Sha256 {
+    static PRECOMPUTED: std::sync::OnceLock<sha2::Sha256> = std::sync::OnceLock::new();
+    PRECOMPUTED
+        .get_or_init(|| {
+            let tag = sha2::Sha256::digest("BIP0340/challenge");
+            sha2::Sha256::new().chain_update(&tag).chain_update(&tag)
+        })
+        .clone()
 }

@@ -23,8 +23,6 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
-once_cell = { version = "1", optional = true }
-
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
 
@@ -46,4 +44,4 @@ hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
 ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
 ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
-ciphersuite-bitcoin = ["ciphersuite-secp256k1", "dep:once_cell"]
+ciphersuite-bitcoin = ["ciphersuite-secp256k1"]

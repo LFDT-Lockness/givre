@@ -20,7 +20,7 @@
 //! [CGGMP21]: https://github.com/dfns/cggmp21
 //! [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html
 
-#![forbid(unsafe_code)]
+#![forbid(unsafe_code, unused_crate_dependencies)]
 #![deny(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 #![deny(missing_docs)]
 #![allow(clippy::type_complexity)]

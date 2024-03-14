@@ -572,7 +572,6 @@ dependencies = [
  "generic-ec",
  "k256",
  "key-share",
- "once_cell",
  "rand_core",
  "round-based",
  "serde",

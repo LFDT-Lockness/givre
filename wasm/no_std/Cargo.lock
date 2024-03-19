@@ -238,7 +238,9 @@ dependencies = [
  "generic-array",
  "generic-ec",
  "rand_core",
+ "serde",
  "subtle",
+ "udigest",
 ]
 
 [[package]]
@@ -285,10 +287,11 @@ dependencies = [
 [[package]]
 name = "key-share"
 version = "0.2.1"
-source = "git+https://github.com/dfns/cggmp21?branch=no_std#979fda3d8272194ce47d5848e3d96c088ab67c1e"
+source = "git+https://github.com/dfns/cggmp21?branch=no_std#79529e1466b1c9a0db82e8b6daa24e0a6df744d8"
 dependencies = [
  "generic-ec",
  "generic-ec-zkp",
+ "rand_core",
 ]
 
 [[package]]
@@ -394,6 +397,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92d43fe69e652f3df9bdc2b85b2854a0825b86e4fb76bc44d945137d053639ca"
 
 [[package]]
+name = "serde"
+version = "1.0.197"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fb1c873e1b9b056a4dc4c0c198b24c3ffa059243875552b2bd0933b1aee4ce2"
+dependencies = [
+ "serde_derive",
+]
+
+[[package]]
+name = "serde_derive"
+version = "1.0.197"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7eb0b34b42edc17f6b7cac84a52a1c5f0e1bb2227e997ca9011ea3dd34e8610b"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
+]
+
+[[package]]
 name = "sha2"
 version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -443,6 +466,27 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
+
+[[package]]
+name = "udigest"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a8e4a5cb9599a5dc3d47f21ad605a5a14594e0b212c7627d68dd5ca9776ace2e"
+dependencies = [
+ "digest",
+ "udigest-derive",
+]
+
+[[package]]
+name = "udigest-derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b29f121da05aa0857e7b96cf2f8782bd4140911506518486d4a125b97d7d609"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
+]
 
 [[package]]
 name = "unicode-ident"

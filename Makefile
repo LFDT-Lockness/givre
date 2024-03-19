@@ -11,7 +11,12 @@ docs-private:
 
 readme:
 	cargo readme --no-title -r givre -i src/lib.rs \
+		| sed -E 's/(\/\*.+\*\/)/\1;/' \
+		| sed -E '/^\[`.+`\]:/d' \
+		| sed -E 's/\[`([^`]*)`\]\(.+?\)/`\1`/g' \
+		| sed -E 's/\[`([^`]*)`\]/`\1`/g' \
+		| sed -E 's/\[mod@([^\[]*)\]/`\1`/g' \
 		| perl -ne 's/(?<!!)\[([^\[]+?)\]\([^\(]+?\)/\1/g; print;' \
-		| perl -ne 's/\[mod@([^\[]+?)\]/\1/g; print;' \
+		| sed -E '/^#$$/d' \
 		> README.md
 

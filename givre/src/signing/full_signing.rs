@@ -1,4 +1,6 @@
 //! Interactive Signing
+
+use alloc::{boxed::Box, vec::Vec};
 use core::fmt;
 
 use futures::SinkExt;

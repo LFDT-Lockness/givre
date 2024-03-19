@@ -1,11 +1,11 @@
-//! Threshold Schnorr implementation based on [FROST IETF Draft][draft]
+//! # Threshold Schnorr implementation based on [FROST IETF Draft][draft]
 //!
-//! FROST is state of art protocol for Threshold Schnorr Signatures that supports 1-round signing (requires signers to
-//! [commit nonces](signing::round1) ahead of time), and identifiable abort.
+//! [FROST][draft] is state of art protocol for Threshold Schnorr Signatures that supports 1-round signing (requires
+//! signers to [commit nonces](signing::round1) ahead of time), and identifiable abort.
 //!
 //! This crate provides:
 //! * Distributed Key Generation (DKG) \
-//!   Note that FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
+//!   FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
 //!   when `cggmp21-keygen` feature is enabled, which is a fairly reasonalbe choice as it's proven to be UC-secure.
 //!   Alternatively, you can use any other UC-secure DKG protocol.
 //! * FROST Signing \
@@ -17,6 +17,15 @@
 //! This crate doesn't support (currently):
 //! * Identifiable abort
 //!
+//! # How to use the library
+//!
+//! ## Distributed Key Generation (DKG)
+//! First of all, you need to generate a key. For that purpose, you can use any secure
+//! (preferrably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
+//! protocol or requirements it needs to meet, so the choice is up to you. This library
+//! re-exports CGGMP21 DKG from [`cggmp21-keygen`] crate which is proven to be UC-secure
+//! and should be a reasonable default.
+//!
 //! [CGGMP21]: https://github.com/dfns/cggmp21
 //! [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html
 
@@ -25,7 +34,10 @@
 #![deny(missing_docs)]
 #![allow(clippy::type_complexity)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
+
+#[cfg(feature = "std")]
+extern crate std;
 
 extern crate alloc;
 

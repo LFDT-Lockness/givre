@@ -84,6 +84,7 @@ impl Ciphersuite for Bitcoin {
     }
 }
 
+#[cfg(feature = "std")]
 fn challenge_hash() -> sha2::Sha256 {
     static PRECOMPUTED: std::sync::OnceLock<sha2::Sha256> = std::sync::OnceLock::new();
     PRECOMPUTED
@@ -92,4 +93,9 @@ fn challenge_hash() -> sha2::Sha256 {
             sha2::Sha256::new().chain_update(&tag).chain_update(&tag)
         })
         .clone()
+}
+#[cfg(not(feature = "std"))]
+fn challenge_hash() -> sha2::Sha256 {
+    let tag = sha2::Sha256::digest("BIP0340/challenge");
+    sha2::Sha256::new().chain_update(&tag).chain_update(&tag)
 }

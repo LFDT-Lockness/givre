@@ -6,6 +6,7 @@
 //!
 //! [Section 5.3]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-signature-share-aggregation
 
+use alloc::vec::Vec;
 use core::fmt;
 
 use generic_ec::{NonZero, Point, Scalar};
@@ -125,6 +126,7 @@ impl fmt::Display for AggregateError {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for AggregateError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
@@ -143,4 +145,5 @@ impl fmt::Display for InvalidSignature {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for InvalidSignature {}

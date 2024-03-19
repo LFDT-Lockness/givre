@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 cggmp21-keygen = { version = "0.1", optional = true }
-key-share = "0.2"
+key-share = { version = "0.2", default-features = false }
 
 generic-ec = { version = "0.2", default-features = false }
 
@@ -27,6 +27,10 @@ serde = { version = "1", default-features = false, features = ["derive"], option
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
 
 [features]
+default = ["std"]
+
+std = ["key-share/std"]
+
 cggmp21-keygen = ["dep:cggmp21-keygen"]
 full-signing = ["round-based", "futures"]
 
@@ -45,3 +49,4 @@ all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite
 ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
 ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
 ciphersuite-bitcoin = ["ciphersuite-secp256k1"]
+

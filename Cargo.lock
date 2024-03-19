@@ -473,9 +473,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4f315ffeaae6a05691c5a27028b4ae960d3a430e406d0109ff8502e2f84ae97b"
+checksum = "d12d7f94ce9093c96ba716c7f94c9c4f0858166cd8e74b617dfe1db6848ce7dd"
 dependencies = [
  "generic-ec-core",
  "generic-ec-curves",
@@ -705,9 +705,8 @@ dependencies = [
 
 [[package]]
 name = "key-share"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05c746d847a566beecf3927cd9dcb60a6c61ca7d24845d8025974a97fa011918"
+version = "0.2.1"
+source = "git+https://github.com/dfns/cggmp21?branch=no_std#979fda3d8272194ce47d5848e3d96c088ab67c1e"
 dependencies = [
  "generic-ec",
  "generic-ec-zkp",
@@ -716,7 +715,6 @@ dependencies = [
  "serde",
  "serde_with",
  "slip-10",
- "thiserror",
 ]
 
 [[package]]

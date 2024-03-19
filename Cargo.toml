@@ -4,3 +4,11 @@ members = [
   "givre",
   "tests",
 ]
+
+exclude = [
+  "wasm/no_std",
+]
+
+[patch.crates-io.key-share]
+git = "https://github.com/dfns/cggmp21"
+branch = "no_std"

@@ -7,7 +7,3 @@ edition = "2021"
 
 [dependencies]
 givre = { path = "../../givre", default-features = false, features = ["all-ciphersuites", "spof"] }
-
-[patch.crates-io.key-share]
-git = "https://github.com/dfns/cggmp21"
-branch = "no_std"

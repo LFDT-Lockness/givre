@@ -282,6 +282,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "displaydoc"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "487585f4d0c6655fe74905e2504d8ad6908e4db67f744eb140876906c2f3175d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
+]
+
+[[package]]
 name = "ed25519"
 version = "2.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -473,9 +484,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d12d7f94ce9093c96ba716c7f94c9c4f0858166cd8e74b617dfe1db6848ce7dd"
+checksum = "8f27328a31bb6dcce5ab6539cb13d5d206cd18c1f4a1b36e680129b037d6ea9a"
 dependencies = [
  "generic-ec-core",
  "generic-ec-curves",
@@ -705,9 +716,11 @@ dependencies = [
 
 [[package]]
 name = "key-share"
-version = "0.2.1"
-source = "git+https://github.com/dfns/cggmp21?branch=no_std#979fda3d8272194ce47d5848e3d96c088ab67c1e"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b92d6a48de7507329eb252365d274b2d704d35a6616ca1be1292a2d96f2b4a59"
 dependencies = [
+ "displaydoc",
  "generic-ec",
  "generic-ec-zkp",
  "hex",
@@ -715,6 +728,7 @@ dependencies = [
  "serde",
  "serde_with",
  "slip-10",
+ "thiserror",
 ]
 
 [[package]]

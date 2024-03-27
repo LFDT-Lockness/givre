@@ -83,7 +83,7 @@ mod generic {
             .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
             .map(|((j, &index_at_keygen), (mut rng, party))| async move {
                 givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], signers, msg)
-                    .sign(party, &mut rng)
+                    .sign(&mut rng, party)
                     .await
             });
 

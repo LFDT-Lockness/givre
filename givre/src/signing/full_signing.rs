@@ -1,4 +1,6 @@
 //! Interactive Signing
+
+use alloc::{boxed::Box, vec::Vec};
 use core::fmt;
 
 use futures::SinkExt;
@@ -58,8 +60,8 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     /// them.
     pub async fn issue_sig_share<M, R>(
         self,
-        party: M,
         rng: &mut R,
+        party: M,
     ) -> Result<SigShare<C::Curve>, FullSigningError>
     where
         M: round_based::Mpc<ProtocolMessage = Msg<C::Curve>>,
@@ -82,7 +84,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     }
 
     /// Executes Interactive Signing protocol
-    pub async fn sign<M, R>(self, party: M, rng: &mut R) -> Result<Signature<C>, FullSigningError>
+    pub async fn sign<M, R>(self, rng: &mut R, party: M) -> Result<Signature<C>, FullSigningError>
     where
         M: round_based::Mpc<ProtocolMessage = Msg<C::Curve>>,
         R: RngCore + CryptoRng,

@@ -6,6 +6,7 @@
 //!
 //! [Section 5.2]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-round-two-signature-share-g
 
+use alloc::vec::Vec;
 use core::{fmt, iter};
 
 use generic_ec::{Curve, NonZero, Scalar};
@@ -239,6 +240,7 @@ impl fmt::Display for Bug {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for SigningError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
@@ -254,6 +256,7 @@ impl std::error::Error for SigningError {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for Bug {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

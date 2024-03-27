@@ -4,3 +4,8 @@ members = [
   "givre",
   "tests",
 ]
+
+exclude = [
+  "wasm/no_std",
+]
+

@@ -6,6 +6,9 @@
 //! * [Secp256k1], requires `ciphersuite-secp256k1` feature
 //! * [Ed25519], requires `ciphersuite-ed25519` feature
 //! * [Bitcoin], requires `ciphersuite-bitcoin` feature
+
+use alloc::vec::Vec;
+
 use generic_ec::{
     errors::{InvalidPoint, InvalidScalar},
     Curve, NonZero, Point, Scalar, SecretScalar,

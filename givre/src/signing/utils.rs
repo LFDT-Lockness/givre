@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use digest::{FixedOutput, Update};
 use generic_ec::{Curve, NonZero, Point, Scalar};
 

@@ -1,7 +1,7 @@
 mod interactive;
 mod test_vectors;
 
-#[generic_tests::define(attrs(test_case::case))]
+#[generic_tests::define(attrs(test_case::case, test))]
 mod generic {
     use givre::{ciphersuite::NormalizedPoint, Ciphersuite};
     use givre_tests::ExternalVerifier;
@@ -78,6 +78,39 @@ mod generic {
 
         sig.verify(&pk, &message).expect("invalid signature");
         C::verify_sig(&pk, &sig, &message).expect("external verifier: invalid signature")
+    }
+
+    #[test]
+    fn point_and_scalar_sizes_are_correct<C: Ciphersuite>() {
+        use givre::generic_ec::{Point, Scalar};
+
+        let serialized_scalar = C::serialize_scalar(&Scalar::<C::Curve>::one());
+        assert_eq!(serialized_scalar.as_ref().len(), C::SCALAR_SIZE);
+
+        let normalized_point = C::normalize_point(Point::<C::Curve>::zero());
+        let serialized_point = C::serialize_normalized_point(&normalized_point);
+        assert_eq!(serialized_point.as_ref().len(), C::NORMALIZED_POINT_SIZE);
+    }
+
+    #[test]
+    fn serialize_deserialize_sig<C: Ciphersuite>() {
+        use givre::generic_ec::{Point, Scalar};
+
+        let mut rng = rand_dev::DevRng::new();
+
+        let r = C::normalize_point(Point::<C::Curve>::generator() * Scalar::random(&mut rng));
+        let z = Scalar::random(&mut rng);
+
+        let sig = givre::signing::aggregate::Signature::<C> { r, z };
+
+        let sig_len = givre::signing::aggregate::Signature::<C>::serialized_len();
+        let mut sig_bytes = vec![0u8; sig_len];
+
+        sig.write_to_slice(&mut sig_bytes);
+
+        let parsed_sig = givre::signing::aggregate::Signature::read_from_slice(&sig_bytes).unwrap();
+        assert_eq!(parsed_sig.r, r);
+        assert_eq!(parsed_sig.z, z);
     }
 
     #[instantiate_tests(<givre::ciphersuite::Bitcoin>)]

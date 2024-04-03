@@ -47,6 +47,43 @@ impl<C: Ciphersuite> Signature<C> {
             Err(InvalidSignature)
         }
     }
+
+    /// Size of signature in bytes serialized via [`Signature::write_to_slice`]
+    pub fn serialized_len() -> usize {
+        C::NORMALIZED_POINT_SIZE + C::SCALAR_SIZE
+    }
+
+    /// Writes serialized signature to the bytes buffer
+    ///
+    /// Bytes buffer size must be at least [`Signature::serialized_len()`], otherwise
+    /// content of output buffer is unspecified
+    pub fn write_to_slice(&self, out: &mut [u8]) {
+        let Some(point_out) = out.get_mut(..C::NORMALIZED_POINT_SIZE) else {
+            return;
+        };
+        point_out.copy_from_slice(C::serialize_normalized_point(&self.r).as_ref());
+
+        let Some(scalar_out) =
+            out.get_mut(C::NORMALIZED_POINT_SIZE..C::NORMALIZED_POINT_SIZE + C::SCALAR_SIZE)
+        else {
+            return;
+        };
+        scalar_out.copy_from_slice(C::serialize_scalar(&self.z).as_ref());
+    }
+
+    /// Parses signature from the bytes buffer
+    ///
+    /// Signature is expected to be serialized via [`Signature::write_to_slice()`]. If signature is invalid,
+    /// returns `None`.
+    pub fn read_from_slice(bytes: &[u8]) -> Option<Self> {
+        let r = bytes.get(..C::NORMALIZED_POINT_SIZE)?;
+        let z = bytes.get(C::NORMALIZED_POINT_SIZE..C::NORMALIZED_POINT_SIZE + C::SCALAR_SIZE)?;
+
+        let r = C::deserialize_normalized_point(r).ok()?;
+        let z = C::deserialize_scalar(z).ok()?;
+
+        Some(Self { r, z })
+    }
 }
 
 /// Aggregate [signature shares](SigShare) into a regular [Schnorr signature](Signature)

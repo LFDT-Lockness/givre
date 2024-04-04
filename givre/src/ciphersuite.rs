@@ -84,6 +84,8 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
 
     /// Byte array that contains bytes representation of the scalar
     type ScalarBytes: AsRef<[u8]>;
+    /// Size of serialized scalar in bytes
+    const SCALAR_SIZE: usize;
     /// Serializes scalar
     fn serialize_scalar(scalar: &Scalar<Self::Curve>) -> Self::ScalarBytes;
     /// Deserializes scalar
@@ -130,10 +132,16 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     }
     /// Byte array that contains bytes representation of the normalized point
     type NormalizedPointBytes: AsRef<[u8]>;
+    /// Size of serialized normalized point in bytes
+    const NORMALIZED_POINT_SIZE: usize;
     /// Serializes a normalized point in a space-efficient manner as defined by Schnorr scheme
     fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
         point: &NormalizedPoint<Self, P>,
     ) -> Self::NormalizedPointBytes;
+    /// Deserialized a normalized point
+    fn deserialize_normalized_point(
+        bytes: &[u8],
+    ) -> Result<NormalizedPoint<Self, Point<Self::Curve>>, InvalidPoint>;
 }
 
 /// Nonce generation as defined in [Section 4.1](https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-nonce-generation)
@@ -236,6 +244,14 @@ impl<C: Ciphersuite, P: AsRef<Point<C::Curve>> + core::ops::Neg<Output = P>> Nor
             debug_assert!(C::is_normalized(neg_point.as_ref()));
             Err(Self(neg_point, Default::default()))
         }
+    }
+}
+
+impl<C: Ciphersuite> NormalizedPoint<C, Point<C::Curve>> {
+    /// Converts `Point` into `NonZero<Point>`, returns `None` if point is zero
+    pub fn into_non_zero(self) -> Option<NormalizedPoint<C, NonZero<Point<C::Curve>>>> {
+        let point = NonZero::from_point(self.0)?;
+        Some(NormalizedPoint(point, Default::default()))
     }
 }
 

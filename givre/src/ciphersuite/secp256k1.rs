@@ -59,6 +59,7 @@ impl Ciphersuite for Secp256k1 {
     }
 
     type ScalarBytes = generic_ec::EncodedScalar<Self::Curve>;
+    const SCALAR_SIZE: usize = 32;
     fn serialize_scalar(scalar: &generic_ec::Scalar<Self::Curve>) -> Self::ScalarBytes {
         scalar.to_be_bytes()
     }
@@ -69,10 +70,18 @@ impl Ciphersuite for Secp256k1 {
     }
 
     type NormalizedPointBytes = Self::PointBytes;
+    const NORMALIZED_POINT_SIZE: usize = 33;
     fn serialize_normalized_point<P: AsRef<Point<Self::Curve>>>(
         point: &super::NormalizedPoint<Self, P>,
     ) -> Self::NormalizedPointBytes {
         Self::serialize_point(point.as_ref())
+    }
+    fn deserialize_normalized_point(
+        bytes: &[u8],
+    ) -> Result<super::NormalizedPoint<Self, Point<Self::Curve>>, generic_ec::errors::InvalidPoint>
+    {
+        let point = Self::deserialize_point(bytes)?;
+        Ok(Self::normalize_point(point))
     }
 }
 

@@ -20,6 +20,11 @@ use super::{aggregate::Signature, round1::PublicCommitments, round2::SigShare};
 
 /// Message of FROST Signing Protocol
 #[derive(Debug, Clone, Copy, round_based::ProtocolMessage)]
+#[cfg_attr(
+    feature = "serde",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(bound = "")
+)]
 pub enum Msg<E: Curve> {
     /// Round 1 message
     Round1(PublicCommitments<E>),

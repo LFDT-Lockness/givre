@@ -91,7 +91,8 @@ impl Ciphersuite for Bitcoin {
         if bytes.len() != 32 {
             return Err(generic_ec::errors::InvalidPoint);
         }
-        let mut buf = [2u8; 33];
+        let mut buf = [0u8; 33];
+        buf[0] = 2;
         buf[1..].copy_from_slice(&bytes);
 
         let point = Self::deserialize_point(&buf)?;

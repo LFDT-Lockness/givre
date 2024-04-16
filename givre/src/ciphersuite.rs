@@ -45,6 +45,13 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     /// Digest that's used to feed data into [H4](Self::h4) and [H5](Self::h5) hash functions
     type Digest: digest::Update + digest::FixedOutput + Clone;
 
+    /// Preferred [multiscalar multiplication](generic_ec::multiscalar) algorithm
+    ///
+    /// Multiscalar multiplication optimization greatly improves performace of FROST protocol.
+    /// By default, we set it to [`generic_ec::multiscalar::Default`] which uses the fastest
+    /// algorithm available in [`generic_ec`] crate.
+    type MultiscalarMul: generic_ec::multiscalar::MultiscalarMul<Self::Curve>;
+
     /// `H1` hash function as defined in the draft
     ///
     /// Accepts a list of bytestring, that'll be contatenated before hashing.

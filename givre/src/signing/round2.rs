@@ -107,7 +107,7 @@ pub fn sign<C: Ciphersuite>(
     let binding_factor = binding_factor_list.get(i).ok_or(Bug::OwnBindingFactor)?.1;
     debug_assert_eq!(binding_factor_list[i].0, signer_id);
 
-    let group_commitment = utils::compute_group_commitment(&comm_list, &binding_factor_list);
+    let group_commitment = utils::compute_group_commitment::<C>(&comm_list, &binding_factor_list);
     let nonce_share = nonce.hiding_nonce + (nonce.binding_nonce * binding_factor);
 
     let (group_commitment, nonce_share) = match NormalizedPoint::try_normalize(group_commitment) {

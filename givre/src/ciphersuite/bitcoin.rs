@@ -19,6 +19,7 @@ impl Ciphersuite for Bitcoin {
     const NAME: &'static str = "DFNS-bitcoin-SHA256-v1";
     type Curve = <Secp256k1 as Ciphersuite>::Curve;
     type Digest = <Secp256k1 as Ciphersuite>::Digest;
+    type MultiscalarMul = generic_ec::multiscalar::Default;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         Secp256k1::h1(msg)

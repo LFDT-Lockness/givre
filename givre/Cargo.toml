@@ -9,7 +9,7 @@ edition = "2021"
 cggmp21-keygen = { version = "0.1", optional = true }
 key-share = { version = "0.2.2", default-features = false }
 
-generic-ec = { version = "0.2", default-features = false }
+generic-ec = { version = "0.2.4", default-features = false }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }

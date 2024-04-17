@@ -485,9 +485,9 @@ dependencies = [
 [[package]]
 name = "generic-ec"
 version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f5cb6bae30037a9462484c3f8c2290314b43e2ca09f7250a573165bcea9e914"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
 dependencies = [
+ "curve25519-dalek",
  "generic-ec-core",
  "generic-ec-curves",
  "hex",
@@ -503,8 +503,7 @@ dependencies = [
 [[package]]
 name = "generic-ec-core"
 version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85e8a3654fc9ea7366dd5725644b3537ec516dc47ea1944afd3c150ccb6e2137"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
 dependencies = [
  "generic-array",
  "rand_core",
@@ -516,8 +515,7 @@ dependencies = [
 [[package]]
 name = "generic-ec-curves"
 version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "564382bd1935579ced6e7cd896f2d8703c0800d5411e8438cc8f6d953c9fb1e7"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
 dependencies = [
  "crypto-bigint",
  "curve25519-dalek",

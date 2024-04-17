@@ -9,3 +9,6 @@ exclude = [
   "wasm/no_std",
 ]
 
+[patch.crates-io.generic-ec]
+git = "https://github.com/dfns/generic-ec"
+branch = "faster-multiscalar"

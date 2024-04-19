@@ -485,7 +485,7 @@ dependencies = [
 [[package]]
 name = "generic-ec"
 version = "0.2.4"
-source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#2d55ded5e875c93077d4e17bb6ee255fd70287da"
 dependencies = [
  "curve25519-dalek",
  "generic-ec-core",
@@ -503,7 +503,7 @@ dependencies = [
 [[package]]
 name = "generic-ec-core"
 version = "0.1.4"
-source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#2d55ded5e875c93077d4e17bb6ee255fd70287da"
 dependencies = [
  "generic-array",
  "rand_core",
@@ -515,7 +515,7 @@ dependencies = [
 [[package]]
 name = "generic-ec-curves"
 version = "0.1.5"
-source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#0448502140738f84d2d8418ead9a935bb24d9627"
+source = "git+https://github.com/dfns/generic-ec?branch=faster-multiscalar#2d55ded5e875c93077d4e17bb6ee255fd70287da"
 dependencies = [
  "crypto-bigint",
  "curve25519-dalek",

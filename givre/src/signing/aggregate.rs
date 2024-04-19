@@ -130,10 +130,14 @@ pub fn aggregate<C: Ciphersuite>(
         .map(|(_j, _comm, sig_share)| sig_share.0)
         .sum();
 
-    Ok(Signature {
+    let sig = Signature {
         r: C::normalize_point(group_commitment),
         z,
-    })
+    };
+    sig.verify(&C::normalize_point(key_info.shared_public_key), msg)
+        .map_err(|_| Reason::InvalidSig)?;
+
+    Ok(sig)
 }
 
 /// Aggregation error
@@ -144,6 +148,7 @@ pub struct AggregateError(Reason);
 enum Reason {
     UnknownSigner(SignerIndex),
     SameSignerTwice,
+    InvalidSig,
 }
 
 impl From<Reason> for AggregateError {
@@ -159,6 +164,7 @@ impl fmt::Display for AggregateError {
             Reason::SameSignerTwice => {
                 f.write_str("same signer appears more than once in the list")
             }
+            Reason::InvalidSig => f.write_str("invalid signature"),
         }
     }
 }
@@ -167,7 +173,7 @@ impl fmt::Display for AggregateError {
 impl std::error::Error for AggregateError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
-            Reason::UnknownSigner(_) | Reason::SameSignerTwice => None,
+            Reason::UnknownSigner(_) | Reason::SameSignerTwice | Reason::InvalidSig => None,
         }
     }
 }

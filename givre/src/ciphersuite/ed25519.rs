@@ -23,7 +23,7 @@ impl Ciphersuite for Ed25519 {
         }
         let hash = hash.finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        reduce_512bits_le_scalar_mod_order(&hash.into())
     }
 
     fn compute_challenge(
@@ -37,7 +37,7 @@ impl Ciphersuite for Ed25519 {
             .chain_update(msg)
             .finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        reduce_512bits_le_scalar_mod_order(&hash.into())
     }
 
     fn h3(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
@@ -49,7 +49,7 @@ impl Ciphersuite for Ed25519 {
         }
         let hash = hash.finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        reduce_512bits_le_scalar_mod_order(&hash.into())
     }
 
     fn h4() -> Self::Digest {
@@ -99,4 +99,15 @@ impl Ciphersuite for Ed25519 {
         let point = Self::deserialize_point(bytes)?;
         Ok(Self::normalize_point(point))
     }
+}
+
+/// Reduces 512 bits integer mod curve order
+///
+/// This is a more efficient version of [`generic_ec::Scalar::from_le_bytes_mod_order`]
+fn reduce_512bits_le_scalar_mod_order(
+    bytes: &[u8; 64],
+) -> generic_ec::Scalar<generic_ec::curves::Ed25519> {
+    let out = curve25519_dalek::Scalar::from_bytes_mod_order_wide(bytes);
+    let out = generic_ec_curves::ed25519::Scalar(out);
+    generic_ec::as_raw::FromRaw::from_raw(out)
 }

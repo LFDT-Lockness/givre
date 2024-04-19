@@ -12,3 +12,7 @@ exclude = [
 [patch.crates-io.generic-ec]
 git = "https://github.com/dfns/generic-ec"
 branch = "faster-multiscalar"
+
+[patch.crates-io.generic-ec-curves]
+git = "https://github.com/dfns/generic-ec"
+branch = "faster-multiscalar"

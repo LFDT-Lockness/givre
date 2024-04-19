@@ -12,7 +12,7 @@ impl Ciphersuite for Ed25519 {
 
     type Curve = generic_ec::curves::Ed25519;
     type Digest = sha2::Sha512;
-    type MultiscalarMul = generic_ec::multiscalar::Dalek;
+    type MultiscalarMul = generic_ec::multiscalar::Default;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         let mut hash = sha2::Sha512::new()

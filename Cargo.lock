@@ -550,6 +550,7 @@ dependencies = [
  "cggmp21-keygen",
  "curve25519-dalek",
  "digest",
+ "futures",
  "generic-ec",
  "generic-ec-curves",
  "k256",

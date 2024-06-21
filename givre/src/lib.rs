@@ -178,6 +178,12 @@ pub use round_based;
 pub mod ciphersuite;
 pub mod signing;
 
+#[cfg(test)]
+mod _unused_deps {
+    // `futures` causes false-positive because it's only used in the docs examples
+    use futures as _;
+}
+
 /// Key share
 ///
 /// This module re-exports type definitions from [`key_share`](::key_share) crate.

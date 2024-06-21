@@ -42,6 +42,9 @@
 //! * [`round_based::Incoming`] and [`round_based::Outgoing`] wrap `Msg` and provide additional data (e.g., sender/recepient)
 //! * [`futures::Stream`] and [`futures::Sink`] are well-known async primitives.
 //!
+//! [`futures::Stream`]: https://docs.rs/futures/latest/futures/stream/trait.Stream.html
+//! [`futures::sink`]: https://docs.rs/futures/latest/futures/sink/trait.Sink.html
+//!
 //! Transport layer implementation needs to meet requirements:
 //! * All messages must be authenticated \
 //!   Whenever one party receives a message from another, the receiver should cryptographically

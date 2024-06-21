@@ -6,17 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.1", optional = true }
-key-share = { version = "0.2.2", default-features = false }
+cggmp21-keygen = { version = "0.3", optional = true }
+key-share = { version = "0.4", default-features = false }
 
-generic-ec = { version = "0.2.4", default-features = false, features = ["alloc"] }
-generic-ec-curves = { version = "0.1", default-features = false, optional = true }
+generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
+generic-ec-curves = { version = "0.2", default-features = false, optional = true }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }
 
-round-based = { version = "0.2", default-features = false, features = ["derive"], optional = true }
-futures = { version = "0.3", default-features = false, features = [], optional = true }
+round-based = { version = "0.3", default-features = false, features = ["derive"], optional = true }
 
 k256 = { version = "0.13", default-features = false, features = ["hash2curve"], optional = true }
 static_assertions = { version = "1.1", optional = true }
@@ -35,7 +34,7 @@ default = ["std"]
 std = ["key-share/std"]
 
 cggmp21-keygen = ["dep:cggmp21-keygen"]
-full-signing = ["round-based", "futures"]
+full-signing = ["round-based"]
 
 serde = ["dep:serde", "key-share/serde"]
 

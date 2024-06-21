@@ -8,6 +8,3 @@ edition = "2021"
 [dependencies]
 givre = { path = "../../givre", default-features = false, features = ["all-ciphersuites", "spof"] }
 
-[patch.crates-io.generic-ec]
-git = "https://github.com/dfns/generic-ec"
-branch = "faster-multiscalar"

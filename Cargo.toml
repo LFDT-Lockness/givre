@@ -9,10 +9,10 @@ exclude = [
   "wasm/no_std",
 ]
 
-[patch.crates-io.generic-ec]
-git = "https://github.com/dfns/generic-ec"
-branch = "faster-multiscalar"
+[patch.crates-io.cggmp21-keygen]
+git = "https://github.com/dfnsco/cggmp21-private"
+rev = "730e1217443eccac983d0177cab222decf07f139"
 
-[patch.crates-io.generic-ec-curves]
-git = "https://github.com/dfns/generic-ec"
-branch = "faster-multiscalar"
+[patch.crates-io.key-share]
+git = "https://github.com/dfnsco/cggmp21-private"
+rev = "730e1217443eccac983d0177cab222decf07f139"

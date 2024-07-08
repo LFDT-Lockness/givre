@@ -1,7 +1,7 @@
 use alloc::vec::Vec;
 
 use digest::{FixedOutput, Update};
-use generic_ec::{Curve, NonZero, Point, Scalar};
+use generic_ec::{NonZero, Point, Scalar};
 
 use crate::ciphersuite::Ciphersuite;
 
@@ -76,21 +76,26 @@ pub fn compute_binding_factors<C: Ciphersuite>(
 /// Differences compared to the draft:
 /// * Assumes that commitments and binding factors come in the same order, i.e. `commitment_list[i].0 == binding_factor_list[i].0`
 ///   for all i. Assumtion is enforced via debug assertation.
-pub fn compute_group_commitment<'a, E: Curve>(
-    commitment_list: impl IntoIterator<Item = &'a (NonZero<Scalar<E>>, PublicCommitments<E>)>,
-    binding_factor_list: impl IntoIterator<Item = &'a (NonZero<Scalar<E>>, Scalar<E>)>,
-) -> Point<E> {
-    commitment_list
-        .into_iter()
-        .zip(binding_factor_list)
-        .map(|((i, comm), (_i, factor))| {
-            debug_assert_eq!(i, _i);
-            (*i, *comm, *factor)
-        })
-        .fold(Point::zero(), |acc, (_i, comm, binding_factor)| {
-            let binding_nonce = comm.binding_comm * binding_factor;
-            acc + comm.hiding_comm + binding_nonce
-        })
+pub fn compute_group_commitment<C: Ciphersuite>(
+    commitment_list: &[(NonZero<Scalar<C::Curve>>, PublicCommitments<C::Curve>)],
+    binding_factor_list: &[(NonZero<Scalar<C::Curve>>, Scalar<C::Curve>)],
+) -> Point<C::Curve> {
+    use generic_ec::multiscalar::MultiscalarMul;
+    debug_assert_eq!(commitment_list.len(), binding_factor_list.len());
+
+    // binding_nonces = \sum_i commitment_list[i].1.binding_comm * binding_factor_list[i].1
+    let binding_nonces =
+        C::MultiscalarMul::multiscalar_mul(commitment_list.iter().zip(binding_factor_list).map(
+            |((i, comm), (_i, factor))| {
+                debug_assert_eq!(i, _i);
+                (*factor, comm.binding_comm)
+            },
+        ));
+    binding_nonces
+        + commitment_list
+            .iter()
+            .map(|(_, comm)| comm.hiding_comm)
+            .sum::<Point<_>>()
 }
 
 pub fn is_sorted<T: Ord>(slice: &[T]) -> bool {

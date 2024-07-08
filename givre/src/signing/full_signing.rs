@@ -3,12 +3,11 @@
 use alloc::{boxed::Box, vec::Vec};
 use core::fmt;
 
-use futures::SinkExt;
 use generic_ec::Curve;
 use rand_core::{CryptoRng, RngCore};
 use round_based::{
     rounds_router::{simple_store::RoundInput, RoundsRouter},
-    Delivery,
+    Delivery, SinkExt,
 };
 
 use crate::{

@@ -12,6 +12,7 @@ impl Ciphersuite for Secp256k1 {
 
     type Curve = generic_ec::curves::Secp256k1;
     type Digest = sha2::Sha256;
+    type MultiscalarMul = generic_ec::multiscalar::Default;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         hash_to_scalar(msg, &[Self::NAME.as_bytes(), b"rho"])

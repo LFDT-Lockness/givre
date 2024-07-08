@@ -12,6 +12,7 @@ impl Ciphersuite for Ed25519 {
 
     type Curve = generic_ec::curves::Ed25519;
     type Digest = sha2::Sha512;
+    type MultiscalarMul = generic_ec::multiscalar::Dalek;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         let mut hash = sha2::Sha512::new()
@@ -22,7 +23,7 @@ impl Ciphersuite for Ed25519 {
         }
         let hash = hash.finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        generic_ec::traits::Reduce::<64>::from_le_array_mod_order(&hash.into())
     }
 
     fn compute_challenge(
@@ -36,7 +37,7 @@ impl Ciphersuite for Ed25519 {
             .chain_update(msg)
             .finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        generic_ec::traits::Reduce::<64>::from_le_array_mod_order(&hash.into())
     }
 
     fn h3(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
@@ -48,7 +49,7 @@ impl Ciphersuite for Ed25519 {
         }
         let hash = hash.finalize();
 
-        generic_ec::Scalar::from_le_bytes_mod_order(hash)
+        generic_ec::traits::Reduce::<64>::from_le_array_mod_order(&hash.into())
     }
 
     fn h4() -> Self::Digest {

@@ -548,11 +548,9 @@ name = "givre"
 version = "0.1.0"
 dependencies = [
  "cggmp21-keygen",
- "curve25519-dalek",
  "digest",
  "futures",
  "generic-ec",
- "generic-ec-curves",
  "k256",
  "key-share",
  "rand_core",

@@ -10,7 +10,6 @@ cggmp21-keygen = { version = "0.3", optional = true }
 key-share = { version = "0.4", default-features = false }
 
 generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
-generic-ec-curves = { version = "0.2", default-features = false, optional = true }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }
@@ -22,8 +21,6 @@ static_assertions = { version = "1.1", optional = true }
 sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
-
-curve25519-dalek = { version = "4", default-features = false, optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
@@ -50,6 +47,6 @@ hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
 
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
 ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
-ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2", "curve25519-dalek", "generic-ec-curves/ed25519"]
+ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
 ciphersuite-bitcoin = ["ciphersuite-secp256k1"]
 

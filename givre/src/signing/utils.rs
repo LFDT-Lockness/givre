@@ -109,3 +109,43 @@ where
 {
     slice.windows(2).all(|win| f(&win[0]) <= f(&win[1]))
 }
+
+/// Returns share preimage associated with j-th signer
+///
+/// * For additive shares, share preimage is defined as `j+1`
+/// * For VSS-shares, share preimage is scalar $I_j$ such that $x_j = F(I_j)$ where
+///   $F(x)$ is polynomial co-shared by the signers and $x_j$ is secret share of j-th
+///   signer
+pub fn share_preimage<E: generic_ec::Curve>(
+    vss_setup: &Option<crate::key_share::VssSetup<E>>,
+    j: u16,
+) -> Option<NonZero<Scalar<E>>> {
+    match vss_setup {
+        Some(v) => v.I.get(usize::from(j)).copied(),
+        None => Some(
+            #[allow(clippy::expect_used)]
+            NonZero::from_scalar(Scalar::from(j + 1)).expect("j+1 is guaranteed to be non-zero"),
+        ),
+    }
+}
+
+#[cfg(feature = "hd-wallets")]
+pub fn derive_additive_shift<E: generic_ec::Curve, Index>(
+    mut epub: slip_10::ExtendedPublicKey<E>,
+    path: impl IntoIterator<Item = Index>,
+) -> Result<Scalar<E>, <Index as TryInto<slip_10::NonHardenedIndex>>::Error>
+where
+    slip_10::NonHardenedIndex: TryFrom<Index>,
+{
+    let mut additive_shift = Scalar::<E>::zero();
+
+    for child_index in path {
+        let child_index: slip_10::NonHardenedIndex = child_index.try_into()?;
+        let shift = slip_10::derive_public_shift(&epub, child_index);
+
+        additive_shift += shift.shift;
+        epub = shift.child_public_key;
+    }
+
+    Ok(additive_shift)
+}

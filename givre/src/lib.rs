@@ -6,7 +6,7 @@
 //! This crate provides:
 //! * Distributed Key Generation (DKG) \
 //!   FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
-//!   when `cggmp21-keygen` feature is enabled, which is a fairly reasonalbe choice as it's proven to be UC-secure.
+//!   when `cggmp21-keygen` feature is enabled, which is a fairly reasonable choice as it's proven to be UC-secure.
 //!   Alternatively, you can use any other UC-secure DKG protocol.
 //! * FROST Signing \
 //!   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
@@ -23,7 +23,7 @@
 //!
 //! ## Distributed Key Generation (DKG)
 //! First of all, you need to generate a key. For that purpose, you can use any secure
-//! (preferrably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
+//! (preferably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
 //! protocol or requirements it needs to meet, so the choice is up to you. This library
 //! re-exports CGGMP21 DKG from [`cggmp21-keygen`] crate when `cggmp21-keygen` feature
 //! is enabled which is proven to be UC-secure and should be a reasonable default.
@@ -39,7 +39,7 @@
 //!
 //! where:
 //! * `Msg` is a protocol message (e.g., [`keygen::msg::threshold::Msg`])
-//! * [`round_based::Incoming`] and [`round_based::Outgoing`] wrap `Msg` and provide additional data (e.g., sender/recepient)
+//! * [`round_based::Incoming`] and [`round_based::Outgoing`] wrap `Msg` and provide additional data (e.g., sender/recipient)
 //! * [`futures::Stream`] and [`futures::Sink`] are well-known async primitives.
 //!
 //! [`futures::Stream`]: https://docs.rs/futures/latest/futures/stream/trait.Stream.html
@@ -189,11 +189,11 @@ mod _unused_deps {
 
 /// Key share
 ///
-/// This module re-exports type definitions from [`key_share`](::key_share) crate.
+/// This module re-exports type definitions from [`key_share`] crate.
 pub mod key_share {
     #[doc(inline)]
     pub use key_share::{
-        CoreKeyShare as KeyShare, DirtyCoreKeyShare as DirtyKeyShare, DirtyKeyInfo,
+        CoreKeyShare as KeyShare, DirtyCoreKeyShare as DirtyKeyShare, DirtyKeyInfo, HdError,
         InvalidCoreShare as InvalidKeyShare, KeyInfo, Validate, VssSetup,
     };
 
@@ -262,7 +262,7 @@ pub type SignerIndex = u16;
 ///
 /// This can be less efficient than doing signing manually, when you can commit nonces before
 /// a message to be signed is known, but more secure, as using this function ensures that
-/// protocol isn't misused (e.g. that nonce is never resused).
+/// protocol isn't misused (e.g. that nonce is never reused).
 ///
 /// ## Inputs
 /// * Signer index in *signing protocol* $0 \le i < \\text{min\\_signers}$

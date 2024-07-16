@@ -86,6 +86,108 @@ impl<C: Ciphersuite> Signature<C> {
     }
 }
 
+/// Aggregation options
+///
+/// Like [`aggregate`] but allows to specify additional options like the HD derivation path
+pub struct AggregateOptions<'a, C: Ciphersuite> {
+    key_info: &'a crate::key_share::KeyInfo<C::Curve>,
+    signers: &'a [(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
+    msg: &'a [u8],
+
+    /// Additive shift derived from HD path
+    hd_additive_shift: Option<Scalar<C::Curve>>,
+    /// Possible values:
+    /// * `None` if script tree is empty
+    /// * `Some(root)` if script tree is not empty
+    ///
+    /// It only matters when `C::IS_TAPROOT` is `true`
+    taproot_merkle_root: Option<[u8; 32]>,
+}
+
+impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
+    /// Constructs aggregate options
+    ///
+    /// Inputs:
+    /// * Public `key_info`
+    /// * List of signers, their commitments and signature shares
+    /// * `msg` being signed
+    pub fn new(
+        key_info: &'a crate::key_share::KeyInfo<C::Curve>,
+        signers: &'a [(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
+        msg: &'a [u8],
+    ) -> Self {
+        Self {
+            key_info,
+            signers,
+            msg,
+
+            hd_additive_shift: None,
+            taproot_merkle_root: None,
+        }
+    }
+
+    /// Specifies HD derivation path
+    ///
+    /// If called twice, the second call overwrites the first.
+    ///
+    /// Returns error if the key doesn't support HD derivation, or if the path is invalid
+    #[cfg(feature = "hd-wallets")]
+    pub fn set_derivation_path<Index>(
+        mut self,
+        path: impl IntoIterator<Item = Index>,
+    ) -> Result<Self, crate::key_share::HdError<<slip_10::NonHardenedIndex as TryFrom<Index>>::Error>>
+    where
+        slip_10::NonHardenedIndex: TryFrom<Index>,
+    {
+        use crate::key_share::HdError;
+
+        let public_key = self
+            .key_info
+            .extended_public_key()
+            .ok_or(HdError::DisabledHd)?;
+        self.hd_additive_shift =
+            Some(utils::derive_additive_shift(public_key, path).map_err(HdError::InvalidPath)?);
+
+        Ok(self)
+    }
+
+    /// Tweaks the key with specified merkle root following [BIP-341]
+    ///
+    /// Note that the taproot spec requires that any key must be tweaked. By default, if this
+    /// method is not called for taproot-enabled ciphersuite, then an empty merkle root
+    /// is assumed.
+    ///
+    /// The method returns an error if the ciphersuite doesn't support taproot, i.e. if
+    /// [`Ciphersuite::IS_TAPROOT`] is `false`
+    ///
+    /// [BIP-341]: https://github.com/bitcoin/bips/blob/master/bip-0341.mediawiki
+    #[cfg(feature = "taproot")]
+    pub fn set_taproot_tweak(
+        mut self,
+        merkle_root: Option<[u8; 32]>,
+    ) -> Result<Self, AggregateError> {
+        if !C::IS_TAPROOT {
+            return Err(Reason::NonTaprootCiphersuite.into());
+        }
+
+        self.taproot_merkle_root = merkle_root;
+        Ok(self)
+    }
+
+    /// Aggregate [signature shares](SigShare) into a regular [Schnorr signature](Signature)
+    ///
+    /// Outputs [Schnorr signature](Signature)
+    pub fn aggregate(self) -> Result<Signature<C>, AggregateError> {
+        aggregate_inner::<C>(
+            self.key_info,
+            self.hd_additive_shift,
+            self.taproot_merkle_root,
+            self.signers,
+            self.msg,
+        )
+    }
+}
+
 /// Aggregate [signature shares](SigShare) into a regular [Schnorr signature](Signature)
 ///
 /// Inputs:
@@ -94,17 +196,78 @@ impl<C: Ciphersuite> Signature<C> {
 /// * `msg` being signed
 ///
 /// Outputs [Schnorr signature](Signature)
+///
+/// If you need to specify additional parameters such as HD derivation path or taproot merkle root,
+/// use [`AggregateOptions`] instead.
 pub fn aggregate<C: Ciphersuite>(
     key_info: &crate::key_share::KeyInfo<C::Curve>,
     signers: &[(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
     msg: &[u8],
 ) -> Result<Signature<C>, AggregateError> {
+    AggregateOptions::new(key_info, signers, msg).aggregate()
+}
+
+/// Aggregate [signature shares](SigShare) into a regular [Schnorr signature](Signature)
+///
+/// Inputs:
+/// * Public `key_info`
+/// * `hd_additive_nonce` derived from HD derivation path
+/// * `taproot_merkle_tree` for taproot tweak (which only takes effect if `C::IS_TAPROOT` is `true`)
+/// * List of signers, their commitments and signature shares
+/// * `msg` being signed
+///
+/// Outputs [Schnorr signature](Signature)
+fn aggregate_inner<C: Ciphersuite>(
+    key_info: &crate::key_share::KeyInfo<C::Curve>,
+    hd_additive_shift: Option<Scalar<C::Curve>>,
+    #[rustfmt::skip]
+    #[cfg_attr(not(feature = "taproot"), allow(unused_variables))]
+    taproot_merkle_root: Option<[u8; 32]>,
+    signers: &[(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
+    msg: &[u8],
+) -> Result<Signature<C>, AggregateError> {
     // --- Retrieve and Validate Data
+    let crate::key_share::DirtyKeyInfo {
+        shared_public_key: pk,
+        vss_setup,
+        ..
+    } = &**key_info;
+    // Make sure we never use (potentially non-normalized) `key_info` anywhere
+    // below by shadowing the variable.
+    #[allow(unused_variables)]
+    let key_info = ();
+
+    // Derive HD child
+    let pk = if let Some(additive_shift) = hd_additive_shift {
+        let pk = pk + Point::generator() * additive_shift;
+        NonZero::from_point(pk).ok_or(Reason::HdChildPkZero)?
+    } else {
+        *pk
+    };
+
+    // Taproot: Normalize the public key
+    let pk = C::normalize_point(pk);
+
+    #[cfg(feature = "taproot")]
+    let pk = {
+        // Taproot: tweak the key share
+        let pk = if C::IS_TAPROOT {
+            let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
+                .ok_or(Reason::TaprootTweakUndefined)?;
+            let pk = *pk + Point::generator() * t;
+            NonZero::from_point(pk).ok_or(Reason::TaprootChildPkZero)?
+        } else {
+            *pk
+        };
+
+        // Taproot: Normalize the public key again after taproot tweak
+        C::normalize_point(pk)
+    };
+
     let mut comm_list = signers
         .iter()
         .map(|(j, comm, _sig_share)| {
-            key_info
-                .share_preimage(*j)
+            utils::share_preimage(vss_setup, *j)
                 .map(|id| (id, *comm))
                 .ok_or(Reason::UnknownSigner(*j))
         })
@@ -122,20 +285,21 @@ pub fn aggregate<C: Ciphersuite>(
     }
 
     // --- The Aggregation
-    let binding_factor_list =
-        utils::compute_binding_factors::<C>(key_info.shared_public_key, &comm_list, msg);
-    let group_commitment = utils::compute_group_commitment::<C>(&comm_list, &binding_factor_list);
+    let binding_factor_list = utils::compute_binding_factors::<C>(*pk, &comm_list, msg);
+    let group_commitment = C::normalize_point(utils::compute_group_commitment::<C>(
+        &comm_list,
+        &binding_factor_list,
+    ));
     let z = signers
         .iter()
         .map(|(_j, _comm, sig_share)| sig_share.0)
         .sum();
 
     let sig = Signature {
-        r: C::normalize_point(group_commitment),
+        r: group_commitment,
         z,
     };
-    sig.verify(&C::normalize_point(key_info.shared_public_key), msg)
-        .map_err(|_| Reason::InvalidSig)?;
+    sig.verify(&pk, msg).map_err(|_| Reason::InvalidSig)?;
 
     Ok(sig)
 }
@@ -149,6 +313,13 @@ enum Reason {
     UnknownSigner(SignerIndex),
     SameSignerTwice,
     InvalidSig,
+    HdChildPkZero,
+    #[cfg(feature = "taproot")]
+    NonTaprootCiphersuite,
+    #[cfg(feature = "taproot")]
+    TaprootTweakUndefined,
+    #[cfg(feature = "taproot")]
+    TaprootChildPkZero,
 }
 
 impl From<Reason> for AggregateError {
@@ -165,6 +336,15 @@ impl fmt::Display for AggregateError {
                 f.write_str("same signer appears more than once in the list")
             }
             Reason::InvalidSig => f.write_str("invalid signature"),
+            Reason::HdChildPkZero => f.write_str("HD derivation error: child pk is zero"),
+            #[cfg(feature = "taproot")]
+            Reason::NonTaprootCiphersuite => {
+                f.write_str("ciphersuite doesn't support taproot tweaks")
+            }
+            #[cfg(feature = "taproot")]
+            Reason::TaprootTweakUndefined => f.write_str("taproot tweak is undefined"),
+            #[cfg(feature = "taproot")]
+            Reason::TaprootChildPkZero => f.write_str("taproot tweak: child pk is zero"),
         }
     }
 }
@@ -173,7 +353,14 @@ impl fmt::Display for AggregateError {
 impl std::error::Error for AggregateError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
-            Reason::UnknownSigner(_) | Reason::SameSignerTwice | Reason::InvalidSig => None,
+            Reason::UnknownSigner(_)
+            | Reason::SameSignerTwice
+            | Reason::InvalidSig
+            | Reason::HdChildPkZero => None,
+            #[cfg(feature = "taproot")]
+            Reason::NonTaprootCiphersuite
+            | Reason::TaprootTweakUndefined
+            | Reason::TaprootChildPkZero => None,
         }
     }
 }

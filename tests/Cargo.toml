@@ -23,4 +23,5 @@ futures = "0.3"
 round-based = { version = "0.3", features = ["dev"] }
 
 ed25519 = { package = "ed25519-dalek", version = "2.1" }
-secp256k1 = { version = "0.28", features = ["global-context"] }
+secp256k1 = { version = "0.29", features = ["global-context"] }
+bitcoin = "0.32"

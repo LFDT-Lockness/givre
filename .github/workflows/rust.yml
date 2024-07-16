@@ -13,21 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"
-    - name: Build all-features
+    - name: Build
       run: cargo build -p givre
   build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"
@@ -37,9 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"
@@ -52,9 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"
@@ -70,22 +58,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"
     - name: Run clippy
       run: cargo clippy --all --lib --all-features
+  clippy-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Run clippy
+      run: cargo clippy --all --tests --all-features
   check-doc:
     runs-on: ubuntu-latest
     steps:
     - uses: dtolnay/rust-toolchain@nightly
     - uses: actions/checkout@v3
-    - uses: webfactory/ssh-agent@v0.9.0
-      with:
-          ssh-private-key: ${{ secrets.CGGMP21 }}
     - uses: Swatinem/rust-cache@v2
       with:
         cache-on-failure: "true"

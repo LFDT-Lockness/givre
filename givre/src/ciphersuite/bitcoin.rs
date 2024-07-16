@@ -3,13 +3,7 @@ use sha2::Digest;
 
 use super::{Ciphersuite, Secp256k1};
 
-/// FROST ciphersuite that outputs [BIP-340] compliant sigantures
-///
-/// # Normalized public keys
-/// BIP-340 requires that public keys are normalized, meaning that they must have
-/// odd Y coordinate. Generic DKG protocols output public key with both even and odd
-/// Y coordinate. You can use [`normalize_key_share`](super::normalize_key_share)
-/// to normalize the key share after it's generated.
+/// FROST ciphersuite that outputs [BIP-340] compliant signatures
 ///
 /// [BIP-340]: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
 #[derive(Debug, Clone, Copy)]
@@ -20,6 +14,8 @@ impl Ciphersuite for Bitcoin {
     type Curve = <Secp256k1 as Ciphersuite>::Curve;
     type Digest = <Secp256k1 as Ciphersuite>::Digest;
     type MultiscalarMul = generic_ec::multiscalar::Default;
+
+    const IS_TAPROOT: bool = true;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         Secp256k1::h1(msg)
@@ -94,7 +90,7 @@ impl Ciphersuite for Bitcoin {
         }
         let mut buf = [0u8; 33];
         buf[0] = 2;
-        buf[1..].copy_from_slice(&bytes);
+        buf[1..].copy_from_slice(bytes);
 
         let point = Self::deserialize_point(&buf)?;
         super::NormalizedPoint::try_normalize(point).map_err(|_| generic_ec::errors::InvalidPoint)
@@ -107,7 +103,7 @@ fn challenge_hash() -> sha2::Sha256 {
     PRECOMPUTED
         .get_or_init(|| {
             let tag = sha2::Sha256::digest("BIP0340/challenge");
-            sha2::Sha256::new().chain_update(&tag).chain_update(&tag)
+            sha2::Sha256::new().chain_update(tag).chain_update(tag)
         })
         .clone()
 }

@@ -33,4 +33,6 @@ pub mod aggregate;
 pub mod full_signing;
 pub mod round1;
 pub mod round2;
+#[cfg(feature = "taproot")]
+pub mod taproot;
 mod utils;

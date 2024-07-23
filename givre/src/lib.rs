@@ -202,6 +202,16 @@ pub mod key_share {
     pub use key_share::reconstruct_secret_key;
 }
 
+mod error {
+    #[cfg(feature = "std")]
+    pub use std::error::Error as StdError;
+
+    #[cfg(not(feature = "std"))]
+    pub trait StdError: core::fmt::Display + core::fmt::Debug {}
+    #[cfg(not(feature = "std"))]
+    impl<E: core::fmt::Display + core::fmt::Debug> StdError for E {}
+}
+
 /// Distributed Key Generation (DKG) protocol based on CGGMP21 paper
 ///
 /// CGGMP21 DKG protocol is proven to be UC-secure, which means that it can safely be composed with

@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.3", optional = true }
+cggmp21-keygen = { version = "0.3", default-features = false, optional = true }
 key-share = { version = "0.4.1", default-features = false }
 
 generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
@@ -31,7 +31,13 @@ futures = "0.3"
 [features]
 default = ["std"]
 
-std = ["key-share/std"]
+std = [
+  "key-share/std",
+  "cggmp21-keygen?/std",
+  "round-based?/std",
+  "serde?/std",
+  "slip-10?/std"
+]
 
 cggmp21-keygen = ["dep:cggmp21-keygen"]
 full-signing = ["round-based"]

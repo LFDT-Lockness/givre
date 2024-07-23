@@ -155,9 +155,8 @@
 //! signer be the position of that signer’s public key in the sorted list.
 //!
 //! # Webassembly and `no_std` support
-//! This crate is compatible with `wasm32-unknown-unknown` target and `no_std` unless
-//! `cggmp21-keygen`, `full-signing`, or `std` features are enabled. Other WASM targets
-//! might be supported even if these features are on.
+//! This crate is compatible with `wasm32-unknown-unknown` target and `no_std`. Requires
+//! disabling `std` feature which is on by default.
 //!
 //! [CGGMP21]: https://github.com/dfns/cggmp21
 //! [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html

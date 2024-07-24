@@ -245,23 +245,23 @@ fn aggregate_inner<C: Ciphersuite>(
         *pk
     };
 
-    // Taproot: Normalize the public key
+    // Taproot: Normalize the public key. Note that for non-taproot ciphersuites we still
+    // need PK to be normalized as functions below accept normalized PK. However, for
+    // non-taproot ciphersuites, normalization is an identity function
     let pk = C::normalize_point(pk);
 
     #[cfg(feature = "taproot")]
-    let pk = {
+    let pk = if C::IS_TAPROOT {
         // Taproot: tweak the key share
-        let pk = if C::IS_TAPROOT {
-            let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
-                .ok_or(Reason::TaprootTweakUndefined)?;
-            let pk = *pk + Point::generator() * t;
-            NonZero::from_point(pk).ok_or(Reason::TaprootChildPkZero)?
-        } else {
-            *pk
-        };
+        let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
+            .ok_or(Reason::TaprootTweakUndefined)?;
+        let pk = *pk + Point::generator() * t;
+        let pk = NonZero::from_point(pk).ok_or(Reason::TaprootChildPkZero)?;
 
         // Taproot: Normalize the public key again after taproot tweak
         C::normalize_point(pk)
+    } else {
+        pk
     };
 
     let mut comm_list = signers

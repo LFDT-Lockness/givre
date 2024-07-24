@@ -214,23 +214,23 @@ fn sign_inner<C: Ciphersuite>(
         (Cow::Borrowed(x), *pk)
     };
 
-    // Taproot: Normalize the key share
+    // Taproot: Normalize the key share. Note that for non-taproot ciphersuites we still
+    // need key share to be normalized as functions below accept normalized PK. However, for
+    // non-taproot ciphersuites, normalization is an identity function
     let (x, pk) = normalize_key_share(x, pk);
 
     #[cfg(feature = "taproot")]
-    let (x, pk) = {
+    let (x, pk) = if C::IS_TAPROOT {
         // Taproot: tweak the key share
-        let (x, pk) = if C::IS_TAPROOT {
-            let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
-                .ok_or(Reason::TaprootTweakUndefined)?;
-
-            apply_additive_shift(*i, vss_setup, x, *pk, t).map_err(Reason::TaprootShift)?
-        } else {
-            (x, *pk)
-        };
+        let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
+            .ok_or(Reason::TaprootTweakUndefined)?;
+        let (x, pk) =
+            apply_additive_shift(*i, vss_setup, x, *pk, t).map_err(Reason::TaprootShift)?;
 
         // Taproot: Normalize the key share again after tweaking...
         normalize_key_share(x, pk)
+    } else {
+        (x, pk)
     };
 
     if signers.len() < usize::from(t) {

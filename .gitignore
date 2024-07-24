@@ -2,3 +2,4 @@
 /wasm/no_std/target
 
 /.helix
+.cspell.config.yaml

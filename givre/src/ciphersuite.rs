@@ -7,8 +7,6 @@
 //! * [Ed25519], requires `ciphersuite-ed25519` feature
 //! * [Bitcoin], requires `ciphersuite-bitcoin` feature
 
-use alloc::vec::Vec;
-
 use generic_ec::{
     errors::{InvalidPoint, InvalidScalar},
     Curve, NonZero, Point, Scalar, SecretScalar,
@@ -47,14 +45,17 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
 
     /// Preferred [multiscalar multiplication](generic_ec::multiscalar) algorithm
     ///
-    /// Multiscalar multiplication optimization greatly improves performace of FROST protocol.
+    /// Multiscalar multiplication optimization greatly improves performance of FROST protocol.
     /// By default, we set it to [`generic_ec::multiscalar::Default`] which uses the fastest
     /// algorithm available in [`generic_ec`] crate.
     type MultiscalarMul: generic_ec::multiscalar::MultiscalarMul<Self::Curve>;
 
+    /// Indicates that the ciphersuite outputs taproot-compatible signatures
+    const IS_TAPROOT: bool = false;
+
     /// `H1` hash function as defined in the draft
     ///
-    /// Accepts a list of bytestring, that'll be contatenated before hashing.
+    /// Accepts a list of bytestring, that'll be concatenated before hashing.
     /// Returns `H1(data[0] || data[1] || ... || data[data.len() - 1])`.
     fn h1(msg: &[&[u8]]) -> Scalar<Self::Curve>;
     /// Computes the challenge according to Schnorr scheme
@@ -67,18 +68,18 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     ) -> Scalar<Self::Curve>;
     /// `H3` hash function as defined in the draft
     ///
-    /// Accepts a list of bytestring, that'll be contatenated before hashing.
+    /// Accepts a list of bytestring, that'll be concatenated before hashing.
     /// Returns `H3(data[0] || data[1] || ... || data[data.len() - 1])`.
     fn h3(msg: &[&[u8]]) -> Scalar<Self::Curve>;
 
     /// `H4` hash function as defined in the draft
     ///
-    /// Accepts a list of bytestring, that'll be contatenated before hashing.
+    /// Accepts a list of bytestring, that'll be concatenated before hashing.
     /// Returns `H4(data[0] || data[1] || ... || data[data.len() - 1])`.
     fn h4() -> Self::Digest;
     /// `H5` hash function as defined in the draft
     ///
-    /// Accepts a list of bytestring, that'll be contatenated before hashing.
+    /// Accepts a list of bytestring, that'll be concatenated before hashing.
     /// Returns `H5(data[0] || data[1] || ... || data[data.len() - 1])`.
     fn h5() -> Self::Digest;
 
@@ -115,10 +116,10 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     ///
     /// Our implementation of FROST requires that if point $X$ isn't normalized, then $-X$ is normalized. Zero point
     /// (aka point at infinity) is always normalized. Note that certain parts of the protocol may enforce this property
-    /// via debug assertations.
+    /// via debug assertions.
     ///
-    /// The protocol always outputs sigantures with normalized R-component. We also require that public key is
-    /// normalized. If it isn't, signing fails. You can use [`normalize_key_share`] function to normalize any key.
+    /// The protocol always outputs signatures with normalized R-component. If key share has non-normalized public
+    /// key, it will be normalized at the time of signing.
     ///
     /// If Schnorr scheme doesn't have a notion of normalized points, this function should always return `true`.
     fn is_normalized(point: &Point<Self::Curve>) -> bool {
@@ -176,7 +177,7 @@ pub trait AdditionalEntropy<C: Ciphersuite> {
     where
         Self: 'b;
 
-    /// Returns bytes representation of the entropy encoded in complience with [`C`](Ciphersuite)
+    /// Returns bytes representation of the entropy encoded in compliance with [`C`](Ciphersuite)
     fn to_bytes(&self) -> Self::Bytes<'_>;
 }
 
@@ -231,7 +232,7 @@ impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
 pub struct NormalizedPoint<C, P>(P, core::marker::PhantomData<C>);
 
 impl<C: Ciphersuite, P: AsRef<Point<C::Curve>>> NormalizedPoint<C, P> {
-    /// Serialzies the normalized point in a space-efficient manner
+    /// Serializes the normalized point in a space-efficient manner
     ///
     /// Alias to [`Ciphersuite::serialize_normalized_point`]
     pub fn to_bytes(&self) -> C::NormalizedPointBytes {
@@ -308,57 +309,4 @@ where
         NormalizedPoint::<C, P>::try_normalize(point)
             .map_err(|_| <D::Error as serde::de::Error>::custom("point isn't normalized"))
     }
-}
-
-/// Normalizes the key share
-///
-/// Some Schnorr signing schemes require public key to be [normalized](Ciphersuite::is_normalized).
-/// Generally, DKG protocols output arbitrary public keys which are not necessarily normalized. If
-/// you want to use this key in the Schnorr scheme that requires public keys to be normalized, each
-/// key share needs to be normalized using this function.
-///
-/// ## Error
-/// Returns an error if output key share is inconsistent. That should never happen in practice. If
-/// it happened, it's probably a bug.
-pub fn normalize_key_share<C: Ciphersuite>(
-    key_share: crate::key_share::KeyShare<C::Curve>,
-) -> Result<crate::key_share::KeyShare<C::Curve>, crate::key_share::InvalidKeyShare> {
-    use crate::key_share::Validate;
-
-    let Err(new_pk) = NormalizedPoint::<C, _>::try_normalize(key_share.shared_public_key) else {
-        // Public key is already normalized
-        return Ok(key_share);
-    };
-    let key_share = key_share.into_inner();
-
-    // PK is negated. Now we need to negate the key share, and each public key share
-    let new_sk = -key_share.x;
-    let public_shares = key_share
-        .key_info
-        .public_shares
-        .iter()
-        .map(|p| -p)
-        .collect::<Vec<_>>();
-
-    crate::key_share::DirtyKeyShare {
-        i: key_share.i,
-        key_info: crate::key_share::DirtyKeyInfo {
-            shared_public_key: *new_pk,
-            public_shares,
-            ..key_share.key_info
-        },
-        x: new_sk,
-    }
-    .validate()
-    .map_err(|e| e.into_error())
-}
-
-/// Checks whether `key_share` is normalized
-///
-/// `key_share` must be normalized, otherwise the signing will return error. See [`Ciphersuite::is_normalized`]
-/// for more details.
-pub fn is_key_share_normalized<C: Ciphersuite>(
-    key_share: &crate::key_share::KeyShare<C::Curve>,
-) -> bool {
-    C::is_normalized(&key_share.shared_public_key)
 }

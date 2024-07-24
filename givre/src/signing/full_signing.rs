@@ -209,15 +209,15 @@ enum Reason {
 
 #[derive(Debug)]
 enum IoError {
-    Send(Box<dyn std::error::Error + Send + Sync>),
-    Recv(Box<dyn std::error::Error + Send + Sync>),
+    Send(Box<dyn crate::error::StdError + Send + Sync>),
+    Recv(Box<dyn crate::error::StdError + Send + Sync>),
 }
 
 impl IoError {
-    fn send(err: impl std::error::Error + Send + Sync + 'static) -> Self {
+    fn send(err: impl crate::error::StdError + Send + Sync + 'static) -> Self {
         Self::Send(Box::new(err))
     }
-    fn recv(err: impl std::error::Error + Send + Sync + 'static) -> Self {
+    fn recv(err: impl crate::error::StdError + Send + Sync + 'static) -> Self {
         Self::Recv(Box::new(err))
     }
 }
@@ -254,6 +254,7 @@ impl fmt::Display for Bug {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for FullSigningError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match &self.0 {
@@ -268,6 +269,7 @@ impl std::error::Error for FullSigningError {
     }
 }
 
+#[cfg(feature = "std")]
 impl std::error::Error for Bug {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

@@ -5,13 +5,15 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-givre = { path = "../../givre", default-features = false, features = ["all-ciphersuites", "spof"] }
-
-[patch.crates-io.cggmp21-keygen]
-git = "https://github.com/dfnsco/cggmp21-private"
-rev = "730e1217443eccac983d0177cab222decf07f139"
-
-[patch.crates-io.key-share]
-git = "https://github.com/dfnsco/cggmp21-private"
-rev = "730e1217443eccac983d0177cab222decf07f139"
+[dependencies.givre]
+path = "../../givre"
+default-features = false
+features = [
+  "all-ciphersuites",
+  "spof",
+  "serde",
+  "cggmp21-keygen",
+  "full-signing",
+  "hd-wallets",
+  "taproot",
+]

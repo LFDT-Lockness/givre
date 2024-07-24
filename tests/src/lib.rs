@@ -1,5 +1,4 @@
 use givre::{
-    ciphersuite::NormalizedPoint,
     generic_ec::{NonZero, Point},
     signing::aggregate::Signature,
     Ciphersuite,
@@ -13,7 +12,7 @@ pub trait ExternalVerifier: Ciphersuite {
     type InvalidSig: core::fmt::Debug;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
+        pk: &NonZero<Point<Self::Curve>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), Self::InvalidSig>;
@@ -26,7 +25,7 @@ impl ExternalVerifier for givre::ciphersuite::Ed25519 {
     type InvalidSig = ed25519::SignatureError;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
+        pk: &NonZero<Point<Self::Curve>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), ed25519::SignatureError> {
@@ -50,7 +49,7 @@ impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
     type InvalidSig = core::convert::Infallible;
 
     fn verify_sig(
-        _pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
+        _pk: &NonZero<Point<Self::Curve>>,
         _sig: &Signature<Self>,
         _msg: &[u8],
     ) -> Result<(), Self::InvalidSig> {
@@ -65,20 +64,24 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
     type InvalidSig = secp256k1::Error;
 
     fn verify_sig(
-        pk: &NormalizedPoint<Self, NonZero<Point<Self::Curve>>>,
+        pk: &NonZero<Point<Self::Curve>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<(), Self::InvalidSig> {
-        let pk = secp256k1::XOnlyPublicKey::from_slice(pk.to_bytes().as_ref())?;
+        use bitcoin::key::TapTweak;
+
+        let pk = Self::normalize_point(*pk);
+        let pk = bitcoin::key::UntweakedPublicKey::from_slice(pk.to_bytes().as_ref())?;
+        let (pk, _) = pk.tap_tweak(secp256k1::SECP256K1, None);
 
         let mut signature = [0u8; 64];
-        signature[..32].copy_from_slice(sig.r.to_bytes().as_ref());
-        signature[32..].copy_from_slice(Self::serialize_scalar(&sig.z).as_ref());
+        assert_eq!(signature.len(), Signature::<Self>::serialized_len());
+        sig.write_to_slice(&mut signature);
 
         let signature = secp256k1::schnorr::Signature::from_slice(&signature)?;
 
         let msg = secp256k1::Message::from_digest_slice(msg)?;
 
-        signature.verify(&msg, &pk)
+        signature.verify(&msg, &pk.to_inner())
     }
 }

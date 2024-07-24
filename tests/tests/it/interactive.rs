@@ -2,7 +2,7 @@
 mod generic {
     use std::iter;
 
-    use givre::{ciphersuite::NormalizedPoint, Ciphersuite};
+    use givre::Ciphersuite;
     use givre_tests::ExternalVerifier;
     use rand::{seq::SliceRandom, Rng, RngCore};
 
@@ -49,16 +49,7 @@ mod generic {
             futures::future::try_join_all(keygen_executions)
                 .await
                 .unwrap();
-        // Normalize key shares
-        let key_shares = key_shares
-            .into_iter()
-            .map(givre::ciphersuite::normalize_key_share::<C>)
-            .collect::<Result<Vec<_>, _>>()
-            .expect("normalize key share");
-        let key_shares = key_shares.as_slice();
-        let key_info: &givre::KeyInfo<_> = key_shares[0].as_ref();
-        let pk = NormalizedPoint::try_normalize(key_info.shared_public_key)
-            .expect("output public key isn't normalized");
+        let pk = key_shares[0].shared_public_key;
 
         // --- Signing
 
@@ -81,10 +72,13 @@ mod generic {
         let signing_executions = (0..t)
             .zip(signers)
             .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
-            .map(|((j, &index_at_keygen), (mut rng, party))| async move {
-                givre::signing::<C>(j, &key_shares[usize::from(index_at_keygen)], signers, msg)
-                    .sign(&mut rng, party)
-                    .await
+            .map(|((j, &index_at_keygen), (mut rng, party))| {
+                let key_share = &key_shares[usize::from(index_at_keygen)];
+                async move {
+                    givre::signing::<C>(j, key_share, signers, msg)
+                        .sign(&mut rng, party)
+                        .await
+                }
             });
 
         let sigs: Vec<givre::signing::aggregate::Signature<_>> =
@@ -92,7 +86,28 @@ mod generic {
                 .await
                 .unwrap();
 
-        sigs[0].verify(&pk, msg).unwrap();
+        {
+            // Tweak the key if necessary
+            let pk = if C::IS_TAPROOT {
+                // Taproot: normalize pk, tweak it, and normalize again
+                let pk = C::normalize_point(pk);
+                let pk = givre::signing::taproot::tweak_public_key(pk, None)
+                    .expect("taproot tweak in undefined");
+                C::normalize_point(pk)
+            } else {
+                match givre::ciphersuite::NormalizedPoint::<C, _>::try_normalize(pk) {
+                    Ok(pk) => pk,
+                    Err(_) => {
+                        panic!("non-taproot ciphersuites don't have notion of normalized points")
+                    }
+                }
+            };
+
+            // Verify the signature using this library
+            sigs[0].verify(&pk, msg).unwrap();
+        }
+
+        // Verify signature using external library
         C::verify_sig(&pk, &sigs[0], msg).unwrap();
 
         for sig in &sigs[1..] {

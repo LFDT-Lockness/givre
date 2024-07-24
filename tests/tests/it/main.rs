@@ -3,7 +3,7 @@ mod test_vectors;
 
 #[generic_tests::define(attrs(test_case::case, test))]
 mod generic {
-    use givre::{ciphersuite::NormalizedPoint, Ciphersuite};
+    use givre::Ciphersuite;
     use givre_tests::ExternalVerifier;
     use rand::{seq::SliceRandom, Rng, RngCore};
 
@@ -21,14 +21,8 @@ mod generic {
             .set_threshold(t)
             .generate_shares(&mut rng)
             .unwrap();
-        let key_shares = key_shares
-            .into_iter()
-            .map(givre::ciphersuite::normalize_key_share::<C>)
-            .collect::<Result<Vec<_>, _>>()
-            .expect("normalize key shares");
         let key_info: &givre::key_share::KeyInfo<_> = key_shares[0].as_ref();
-        let pk = NormalizedPoint::try_normalize(key_info.shared_public_key)
-            .expect("public key is not normalized");
+        let pk = key_info.shared_public_key;
 
         // List of indexes of signers who co-hold the key
         let key_holders = (0..n).collect::<Vec<_>>();
@@ -76,7 +70,28 @@ mod generic {
         let sig = givre::signing::aggregate::aggregate::<C>(key_info, &partial_sigs, &message)
             .expect("aggregation failed");
 
-        sig.verify(&pk, &message).expect("invalid signature");
+        {
+            // Tweak the key if necessary
+            let pk = if C::IS_TAPROOT {
+                // Taproot: normalize pk, tweak it, and normalize again
+                let pk = C::normalize_point(pk);
+                let pk = givre::signing::taproot::tweak_public_key(pk, None)
+                    .expect("taproot tweak in undefined");
+                C::normalize_point(pk)
+            } else {
+                match givre::ciphersuite::NormalizedPoint::<C, _>::try_normalize(pk) {
+                    Ok(pk) => pk,
+                    Err(_) => {
+                        panic!("non-taproot ciphersuites don't have notion of normalized points")
+                    }
+                }
+            };
+
+            // Verify the signature using this library
+            sig.verify(&pk, &message).unwrap();
+        }
+
+        // Verify signature using external library
         C::verify_sig(&pk, &sig, &message).expect("external verifier: invalid signature")
     }
 

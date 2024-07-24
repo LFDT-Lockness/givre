@@ -6,7 +6,7 @@ signers to commit nonces ahead of time), and identifiable abort.
 This crate provides:
 * Distributed Key Generation (DKG) \
   FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
-  when `cggmp21-keygen` feature is enabled, which is a fairly reasonalbe choice as it's proven to be UC-secure.
+  when `cggmp21-keygen` feature is enabled, which is a fairly reasonable choice as it's proven to be UC-secure.
   Alternatively, you can use any other UC-secure DKG protocol.
 * FROST Signing \
   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
@@ -23,7 +23,7 @@ The crate is wasm and no_std friendly.
 
 ### Distributed Key Generation (DKG)
 First of all, you need to generate a key. For that purpose, you can use any secure
-(preferrably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
+(preferably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
 protocol or requirements it needs to meet, so the choice is up to you. This library
 re-exports CGGMP21 DKG from `cggmp21-keygen` crate when `cggmp21-keygen` feature
 is enabled which is proven to be UC-secure and should be a reasonable default.
@@ -39,7 +39,7 @@ let outgoing: impl Sink<Outgoing<Msg>>;
 
 where:
 * `Msg` is a protocol message (e.g., `keygen::msg::threshold::Msg`)
-* `round_based::Incoming` and `round_based::Outgoing` wrap `Msg` and provide additional data (e.g., sender/recepient)
+* `round_based::Incoming` and `round_based::Outgoing` wrap `Msg` and provide additional data (e.g., sender/recipient)
 * `futures::Stream` and `futures::Sink` are well-known async primitives.
 
 
@@ -122,9 +122,8 @@ by lexicographically sorting the signers’ public keys, and letting the index o
 signer be the position of that signer’s public key in the sorted list.
 
 ## Webassembly and `no_std` support
-This crate is compatible with `wasm32-unknown-unknown` target and `no_std` unless
-`cggmp21-keygen`, `full-signing`, or `std` features are enabled. Other WASM targets
-might be supported even if these features are on.
+This crate is compatible with `wasm32-unknown-unknown` target and `no_std`. Requires
+disabling `std` feature which is on by default.
 
 [CGGMP21]: https://github.com/dfns/cggmp21
 [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html

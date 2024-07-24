@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.3", optional = true }
-key-share = { version = "0.4", default-features = false }
+cggmp21-keygen = { version = "0.3", default-features = false, optional = true }
+key-share = { version = "0.4.1", default-features = false }
 
 generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
 
@@ -22,6 +22,8 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
+slip-10 = { version = "0.4", default-features = false, optional = true }
+
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
 futures = "0.3"
@@ -29,7 +31,13 @@ futures = "0.3"
 [features]
 default = ["std"]
 
-std = ["key-share/std"]
+std = [
+  "key-share/std",
+  "cggmp21-keygen?/std",
+  "round-based?/std",
+  "serde?/std",
+  "slip-10?/std"
+]
 
 cggmp21-keygen = ["dep:cggmp21-keygen"]
 full-signing = ["round-based"]
@@ -38,15 +46,11 @@ serde = ["dep:serde", "key-share/serde"]
 
 spof = ["key-share/spof"]
 
-# Enabling this flag only makes the library compatible with these dependencies. Otherwise,
-# for instance, if `key-share` crate has `hd-wallets` feature enabled, but `givre` doesn't,
-# it'll fail to compile.
-#
-# Library doesn't have support of HD signing yet.
-hd-wallets = ["key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
+hd-wallets = ["slip-10", "key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
+taproot = ["sha2"]
 
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
 ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
 ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
-ciphersuite-bitcoin = ["ciphersuite-secp256k1"]
+ciphersuite-bitcoin = ["ciphersuite-secp256k1", "taproot"]
 

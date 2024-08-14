@@ -133,7 +133,7 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
     /// Returns error if the key doesn't support HD derivation, or if the path is invalid
     #[cfg(feature = "hd-wallets")]
     pub fn set_derivation_path<Index>(
-        mut self,
+        self,
         path: impl IntoIterator<Item = Index>,
     ) -> Result<Self, crate::key_share::HdError<<slip_10::NonHardenedIndex as TryFrom<Index>>::Error>>
     where
@@ -145,10 +145,22 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
             .key_info
             .extended_public_key()
             .ok_or(HdError::DisabledHd)?;
-        self.hd_additive_shift =
-            Some(utils::derive_additive_shift(public_key, path).map_err(HdError::InvalidPath)?);
+        let additive_shift =
+            utils::derive_additive_shift(public_key, path).map_err(HdError::InvalidPath)?;
 
-        Ok(self)
+        Ok(self.dangerous_set_hd_additive_shift(additive_shift))
+    }
+
+    /// Specifies HD derivation additive shift
+    ///
+    /// CAUTION: additive shift MUST BE derived from the extended public key obtained from
+    /// the key share which is used for signing by calling [`utils::derive_additive_shift`].
+    pub(crate) fn dangerous_set_hd_additive_shift(
+        mut self,
+        hd_additive_shift: Scalar<C::Curve>,
+    ) -> Self {
+        self.hd_additive_shift = Some(hd_additive_shift);
+        self
     }
 
     /// Tweaks the key with specified merkle root following [BIP-341]

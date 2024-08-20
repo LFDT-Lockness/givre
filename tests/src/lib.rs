@@ -1,4 +1,4 @@
-use anyhow::Context;
+use anyhow::{Context, Result};
 use givre::{
     generic_ec::{NonZero, Point},
     signing::aggregate::Signature,
@@ -12,8 +12,6 @@ pub trait ExternalVerifier: Ciphersuite {
 
     /// Indicates whether external lib supports HD derivation
     const SUPPORTS_HD: bool = false;
-
-    type Error: core::fmt::Debug;
 
     /// Verifies signature using external library
     ///
@@ -36,15 +34,13 @@ pub trait ExternalVerifier: Ciphersuite {
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         sig: &Signature<Self>,
         msg: &[u8],
-    ) -> Result<(), Self::Error>;
+    ) -> Result<()>;
 }
 
 #[derive(Debug)]
 pub struct InvalidSignature;
 
 impl ExternalVerifier for givre::ciphersuite::Ed25519 {
-    type Error = anyhow::Error;
-
     fn verify_sig(
         pk: &NonZero<Point<Self::Curve>>,
         _chain_code: Option<[u8; 32]>,
@@ -52,7 +48,7 @@ impl ExternalVerifier for givre::ciphersuite::Ed25519 {
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         sig: &Signature<Self>,
         msg: &[u8],
-    ) -> Result<(), Self::Error> {
+    ) -> Result<()> {
         if !hd_derivation_path.is_empty() {
             anyhow::bail!("HD derivation is not supported by ed25519_dalek")
         }
@@ -77,8 +73,6 @@ impl ExternalVerifier for givre::ciphersuite::Ed25519 {
 }
 
 impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
-    type Error = anyhow::Error;
-
     fn verify_sig(
         _pk: &NonZero<Point<Self::Curve>>,
         _chain_code: Option<[u8; 32]>,
@@ -86,7 +80,7 @@ impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         _sig: &Signature<Self>,
         _msg: &[u8],
-    ) -> Result<(), Self::Error> {
+    ) -> Result<()> {
         if !hd_derivation_path.is_empty() {
             anyhow::bail!("HD derivation is not supported by ed25519_dalek")
         }
@@ -102,8 +96,6 @@ impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
 impl ExternalVerifier for givre::ciphersuite::Bitcoin {
     const REQUIRED_MESSAGE_SIZE: Option<usize> = Some(32);
 
-    type Error = anyhow::Error;
-
     fn verify_sig(
         pk: &NonZero<Point<Self::Curve>>,
         chain_code: Option<[u8; 32]>,
@@ -111,7 +103,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         sig: &Signature<Self>,
         msg: &[u8],
-    ) -> Result<(), Self::Error> {
+    ) -> Result<()> {
         let pk =
             bitcoin::secp256k1::PublicKey::from_slice(&pk.to_bytes(true)).context("public key")?;
 

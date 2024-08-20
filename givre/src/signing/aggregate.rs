@@ -97,11 +97,12 @@ pub struct AggregateOptions<'a, C: Ciphersuite> {
     /// Additive shift derived from HD path
     hd_additive_shift: Option<Scalar<C::Curve>>,
     /// Possible values:
-    /// * `None` if script tree is empty
+    /// * `None` if it wasn't specified
+    /// * `Some(None)` if script tree is empty
     /// * `Some(root)` if script tree is not empty
     ///
-    /// It only matters when `C::IS_TAPROOT` is `true`
-    taproot_merkle_root: Option<[u8; 32]>,
+    /// It must be `None` when `C::IS_TAPROOT` is `true`, and it must be `Some(_)` otherwise
+    taproot_merkle_root: Option<Option<[u8; 32]>>,
 }
 
 impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
@@ -182,7 +183,7 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
             return Err(Reason::NonTaprootCiphersuite.into());
         }
 
-        self.taproot_merkle_root = merkle_root;
+        self.taproot_merkle_root = Some(merkle_root);
         Ok(self)
     }
 
@@ -234,7 +235,7 @@ fn aggregate_inner<C: Ciphersuite>(
     hd_additive_shift: Option<Scalar<C::Curve>>,
     #[rustfmt::skip]
     #[cfg_attr(not(feature = "taproot"), allow(unused_variables))]
-    taproot_merkle_root: Option<[u8; 32]>,
+    taproot_merkle_root: Option<Option<[u8; 32]>>,
     signers: &[(SignerIndex, PublicCommitments<C::Curve>, SigShare<C::Curve>)],
     msg: &[u8],
 ) -> Result<Signature<C>, AggregateError> {
@@ -265,7 +266,8 @@ fn aggregate_inner<C: Ciphersuite>(
     #[cfg(feature = "taproot")]
     let pk = if C::IS_TAPROOT {
         // Taproot: tweak the key share
-        let t = crate::signing::taproot::tweak::<C>(pk, taproot_merkle_root)
+        let merkle_root = taproot_merkle_root.ok_or(Reason::MissingTaprootMerkleRoot)?;
+        let t = crate::signing::taproot::tweak::<C>(pk, merkle_root)
             .ok_or(Reason::TaprootTweakUndefined)?;
         let pk = *pk + Point::generator() * t;
         let pk = NonZero::from_point(pk).ok_or(Reason::TaprootChildPkZero)?;
@@ -327,6 +329,8 @@ enum Reason {
     InvalidSig,
     HdChildPkZero,
     #[cfg(feature = "taproot")]
+    MissingTaprootMerkleRoot,
+    #[cfg(feature = "taproot")]
     NonTaprootCiphersuite,
     #[cfg(feature = "taproot")]
     TaprootTweakUndefined,
@@ -350,6 +354,11 @@ impl fmt::Display for AggregateError {
             Reason::InvalidSig => f.write_str("invalid signature"),
             Reason::HdChildPkZero => f.write_str("HD derivation error: child pk is zero"),
             #[cfg(feature = "taproot")]
+            Reason::MissingTaprootMerkleRoot => f.write_str(
+                "taproot merkle tree is missing: it must be specified \
+                for taproot ciphersuite via `SigningOptions::set_taproot_tweak`",
+            ),
+            #[cfg(feature = "taproot")]
             Reason::NonTaprootCiphersuite => {
                 f.write_str("ciphersuite doesn't support taproot tweaks")
             }
@@ -370,7 +379,8 @@ impl std::error::Error for AggregateError {
             | Reason::InvalidSig
             | Reason::HdChildPkZero => None,
             #[cfg(feature = "taproot")]
-            Reason::NonTaprootCiphersuite
+            Reason::MissingTaprootMerkleRoot
+            | Reason::NonTaprootCiphersuite
             | Reason::TaprootTweakUndefined
             | Reason::TaprootChildPkZero => None,
         }

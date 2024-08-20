@@ -39,7 +39,7 @@ pub struct SigningBuilder<'a, C: Ciphersuite> {
     msg: &'a [u8],
 
     hd_additive_shift: Option<generic_ec::Scalar<C::Curve>>,
-    taproot_merkle_root: Option<[u8; 32]>,
+    taproot_merkle_root: Option<Option<[u8; 32]>>,
 }
 
 impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
@@ -106,7 +106,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
             return Err(Reason::NonTaprootCiphersuite.into());
         }
 
-        self.taproot_merkle_root = merkle_root;
+        self.taproot_merkle_root = Some(merkle_root);
         Ok(self)
     }
 
@@ -175,7 +175,7 @@ async fn signing<C, M>(
     signers: &[SignerIndex],
     msg: &[u8],
     hd_additive_shift: Option<generic_ec::Scalar<C::Curve>>,
-    taproot_merkle_root: Option<[u8; 32]>,
+    taproot_merkle_root: Option<Option<[u8; 32]>>,
     output_sig_share: bool,
 ) -> Result<SigningOutput<C>, FullSigningError>
 where
@@ -228,9 +228,9 @@ where
         return Err(Bug::AdditiveShiftWithoutHdFeature.into());
     }
     #[cfg(feature = "taproot")]
-    if C::IS_TAPROOT {
+    if let Some(root) = taproot_merkle_root {
         options = options
-            .set_taproot_tweak(taproot_merkle_root)
+            .set_taproot_tweak(root)
             .map_err(Bug::SetTaprootTweakSign)?;
     }
     if cfg!(not(feature = "taproot")) && taproot_merkle_root.is_some() {
@@ -264,9 +264,9 @@ where
         options = options.dangerous_set_hd_additive_shift(additive_shift);
     }
     #[cfg(feature = "taproot")]
-    if C::IS_TAPROOT {
+    if let Some(root) = taproot_merkle_root {
         options = options
-            .set_taproot_tweak(taproot_merkle_root)
+            .set_taproot_tweak(root)
             .map_err(Bug::SetTaprootTweakAggregate)?;
     }
     let sig = options.aggregate().map_err(Reason::Aggregate)?;

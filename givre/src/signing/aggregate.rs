@@ -99,7 +99,7 @@ pub struct AggregateOptions<'a, C: Ciphersuite> {
     /// Possible values:
     /// * `None` if it wasn't specified
     /// * `Some(None)` if script tree is empty
-    /// * `Some(root)` if script tree is not empty
+    /// * `Some(Some(root))` if script tree is not empty
     ///
     /// It must be `None` when `C::IS_TAPROOT` is `true`, and it must be `Some(_)` otherwise
     taproot_merkle_root: Option<Option<[u8; 32]>>,

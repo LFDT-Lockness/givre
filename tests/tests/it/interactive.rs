@@ -2,6 +2,7 @@
 mod generic {
     use std::iter;
 
+    use anyhow::Context;
     use givre::Ciphersuite;
     use givre_tests::ExternalVerifier;
     use rand::{seq::SliceRandom, Rng, RngCore};
@@ -35,6 +36,7 @@ mod generic {
                     if let Some(t) = t {
                         givre::keygen::<C::Curve>(eid, j, n)
                             .set_threshold(t)
+                            .hd_wallet(C::SUPPORTS_HD)
                             .start(&mut rng, party_threshold)
                             .await
                     } else {
@@ -58,6 +60,26 @@ mod generic {
         let mut msg = vec![0u8; msg_len];
         rng.fill_bytes(&mut msg);
         let msg = &msg;
+        println!("message to sign: {}", hex::encode(msg));
+
+        // HD derivation path
+        let derivation_path = if C::SUPPORTS_HD {
+            givre_tests::random_hd_path(&mut rng)
+        } else {
+            vec![]
+        };
+        println!("HD path: {derivation_path:?}");
+
+        // Taproot merkle root
+        let taproot_merkle_root = if C::IS_TAPROOT {
+            Some(givre_tests::random_taproot_merkle_root(&mut rng))
+        } else {
+            None
+        };
+        println!(
+            "Taproot merkle root: {:?}",
+            taproot_merkle_root.map(|r| r.map(hex::encode))
+        );
 
         // Choose `t` signers to do signing
         let t = t.unwrap_or(n);
@@ -74,10 +96,19 @@ mod generic {
             .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
             .map(|((j, &index_at_keygen), (mut rng, party))| {
                 let key_share = &key_shares[usize::from(index_at_keygen)];
+                let derivation_path = &derivation_path;
                 async move {
-                    givre::signing::<C>(j, key_share, signers, msg)
-                        .sign(&mut rng, party)
-                        .await
+                    let mut signing = givre::signing::<C>(j, key_share, signers, msg);
+                    if !derivation_path.is_empty() {
+                        signing = signing
+                            .set_derivation_path(derivation_path.iter().copied())
+                            .context("set derivation path")?;
+                    }
+                    if let Some(root) = taproot_merkle_root {
+                        signing = signing.set_taproot_tweak(root).context("set merkle root")?
+                    }
+
+                    signing.sign(&mut rng, party).await.context("sign")
                 }
             });
 
@@ -86,29 +117,16 @@ mod generic {
                 .await
                 .unwrap();
 
-        {
-            // Tweak the key if necessary
-            let pk = if C::IS_TAPROOT {
-                // Taproot: normalize pk, tweak it, and normalize again
-                let pk = C::normalize_point(pk);
-                let pk = givre::signing::taproot::tweak_public_key(pk, None)
-                    .expect("taproot tweak in undefined");
-                C::normalize_point(pk)
-            } else {
-                match givre::ciphersuite::NormalizedPoint::<C, _>::try_normalize(pk) {
-                    Ok(pk) => pk,
-                    Err(_) => {
-                        panic!("non-taproot ciphersuites don't have notion of normalized points")
-                    }
-                }
-            };
-
-            // Verify the signature using this library
-            sigs[0].verify(&pk, msg).unwrap();
-        }
-
         // Verify signature using external library
-        C::verify_sig(&pk, &sigs[0], msg).unwrap();
+        C::verify_sig(
+            &pk,
+            key_shares[0].chain_code,
+            &derivation_path,
+            taproot_merkle_root,
+            &sigs[0],
+            msg,
+        )
+        .unwrap();
 
         for sig in &sigs[1..] {
             assert_eq!(sigs[0].r, sig.r);

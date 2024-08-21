@@ -16,6 +16,7 @@ rand_dev = "0.1"
 rand = "0.8"
 rand_core = "0.6"
 
+hex = "0.4"
 hex-literal = "0.4"
 
 tokio = { version = "1", features = ["macros", "rt"]}
@@ -25,3 +26,6 @@ round-based = { version = "0.3", features = ["dev"] }
 ed25519 = { package = "ed25519-dalek", version = "2.1" }
 secp256k1 = { version = "0.29", features = ["global-context"] }
 bitcoin = "0.32"
+slip-10 = { version = "0.4", default-features = false }
+
+anyhow = "1"

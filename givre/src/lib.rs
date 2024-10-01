@@ -174,6 +174,8 @@ extern crate std;
 extern crate alloc;
 
 pub use generic_ec;
+#[cfg(feature = "hd-wallet")]
+pub use hd_wallet;
 #[cfg(feature = "full-signing")]
 pub use round_based;
 

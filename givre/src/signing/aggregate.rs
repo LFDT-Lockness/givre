@@ -132,13 +132,16 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
     /// If called twice, the second call overwrites the first.
     ///
     /// Returns error if the key doesn't support HD derivation, or if the path is invalid
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     pub fn set_derivation_path<Index>(
         self,
         path: impl IntoIterator<Item = Index>,
-    ) -> Result<Self, crate::key_share::HdError<<slip_10::NonHardenedIndex as TryFrom<Index>>::Error>>
+    ) -> Result<
+        Self,
+        crate::key_share::HdError<<hd_wallet::NonHardenedIndex as TryFrom<Index>>::Error>,
+    >
     where
-        slip_10::NonHardenedIndex: TryFrom<Index>,
+        hd_wallet::NonHardenedIndex: TryFrom<Index>,
     {
         use crate::key_share::HdError;
 

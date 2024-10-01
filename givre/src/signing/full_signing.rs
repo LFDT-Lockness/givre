@@ -67,13 +67,16 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     /// If called twice, the second call overwrites the first.
     ///
     /// Returns error if the key doesn't support HD derivation, or if the path is invalid
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     pub fn set_derivation_path<Index>(
         mut self,
         path: impl IntoIterator<Item = Index>,
-    ) -> Result<Self, crate::key_share::HdError<<slip_10::NonHardenedIndex as TryFrom<Index>>::Error>>
+    ) -> Result<
+        Self,
+        crate::key_share::HdError<<hd_wallet::NonHardenedIndex as TryFrom<Index>>::Error>,
+    >
     where
-        slip_10::NonHardenedIndex: TryFrom<Index>,
+        hd_wallet::NonHardenedIndex: TryFrom<Index>,
     {
         use crate::key_share::HdError;
 
@@ -220,11 +223,11 @@ where
 
     let mut options =
         crate::signing::round2::SigningOptions::<C>::new(key_share, nonces, msg, &signers_list);
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     if let Some(additive_shift) = hd_additive_shift {
         options = options.dangerous_set_hd_additive_shift(additive_shift);
     }
-    if cfg!(not(feature = "hd-wallets")) && hd_additive_shift.is_some() {
+    if cfg!(not(feature = "hd-wallet")) && hd_additive_shift.is_some() {
         return Err(Bug::AdditiveShiftWithoutHdFeature.into());
     }
     #[cfg(feature = "taproot")]
@@ -259,7 +262,7 @@ where
     let key_info: &KeyInfo<_> = key_share.as_ref();
     let mut options =
         crate::signing::aggregate::AggregateOptions::new(key_info, &signers_list, msg);
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     if let Some(additive_shift) = hd_additive_shift {
         options = options.dangerous_set_hd_additive_shift(additive_shift);
     }

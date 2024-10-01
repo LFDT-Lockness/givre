@@ -168,7 +168,7 @@ pub fn random_taproot_merkle_root(rng: &mut impl rand::Rng) -> Option<[u8; 32]> 
 /// between 0 to 3 indexes
 pub fn random_hd_path(rng: &mut impl rand::Rng) -> Vec<u32> {
     let len = rng.gen_range(0..=3);
-    std::iter::repeat_with(|| rng.gen_range(0..slip_10::H))
+    std::iter::repeat_with(|| rng.gen_range(0..givre::hd_wallet::H))
         .take(len)
         .collect()
 }

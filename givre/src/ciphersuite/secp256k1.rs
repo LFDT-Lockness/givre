@@ -14,6 +14,8 @@ impl Ciphersuite for Secp256k1 {
     type Digest = sha2::Sha256;
     type MultiscalarMul = generic_ec::multiscalar::Default;
 
+    type HdAlgo = hd_wallet::Slip10;
+
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         hash_to_scalar(msg, &[Self::NAME.as_bytes(), b"rho"])
     }

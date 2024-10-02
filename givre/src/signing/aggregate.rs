@@ -129,11 +129,35 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
 
     /// Specifies HD derivation path
     ///
+    /// Uses default HD derivation algorithm defined for the ciphersuite in [`Ciphersuite::HdAlgo`].
+    /// If you need to use another algorithm, use [`set_derivation_path_with_algo`].
+    ///
     /// If called twice, the second call overwrites the first.
     ///
     /// Returns error if the key doesn't support HD derivation, or if the path is invalid
     #[cfg(feature = "hd-wallet")]
     pub fn set_derivation_path<Index>(
+        self,
+        path: impl IntoIterator<Item = Index>,
+    ) -> Result<
+        Self,
+        crate::key_share::HdError<<hd_wallet::NonHardenedIndex as TryFrom<Index>>::Error>,
+    >
+    where
+        hd_wallet::NonHardenedIndex: TryFrom<Index>,
+    {
+        self.set_derivation_path_with_algo::<C::HdAlgo, _>(path)
+    }
+
+    /// Specifies HD derivation path
+    ///
+    /// Uses HD derivation algorithm defined by [`hd_wallet::HdWallet`] trait.
+    ///
+    /// If called twice, the second call overwrites the first.
+    ///
+    /// Returns error if the key doesn't support HD derivation, or if the path is invalid
+    #[cfg(feature = "hd-wallet")]
+    pub fn set_derivation_path_with_algo<HdAlgo: hd_wallet::HdWallet<C::Curve>, Index>(
         self,
         path: impl IntoIterator<Item = Index>,
     ) -> Result<
@@ -149,8 +173,8 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
             .key_info
             .extended_public_key()
             .ok_or(HdError::DisabledHd)?;
-        let additive_shift =
-            utils::derive_additive_shift(public_key, path).map_err(HdError::InvalidPath)?;
+        let additive_shift = utils::derive_additive_shift::<C::Curve, HdAlgo, _>(public_key, path)
+            .map_err(HdError::InvalidPath)?;
 
         Ok(self.dangerous_set_hd_additive_shift(additive_shift))
     }

@@ -50,7 +50,7 @@ hd-wallet = ["dep:hd-wallet", "key-share/hd-wallet", "cggmp21-keygen?/hd-wallet"
 taproot = ["sha2"]
 
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
-ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
-ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
-ciphersuite-bitcoin = ["ciphersuite-secp256k1", "taproot"]
+ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "hd-wallet?/curve-secp256k1", "k256", "sha2", "static_assertions"]
+ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "hd-wallet?/curve-ed25519", "sha2"]
+ciphersuite-bitcoin = ["ciphersuite-secp256k1", "hd-wallet?/curve-secp256k1", "taproot"]
 

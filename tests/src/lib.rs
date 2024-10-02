@@ -52,7 +52,7 @@ impl ExternalVerifier for givre::ciphersuite::Ed25519 {
 
         let pk = if !hd_derivation_path.is_empty() {
             derive_child_key::<_, Self::HdAlgo>(
-                &pk,
+                pk,
                 chain_code.context("missing chain code")?,
                 hd_derivation_path,
             )?
@@ -124,7 +124,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
                 let child_index = bitcoin::bip32::ChildNumber::from_normal_idx(child_index)
                     .context("only non-hardened derivation is supported")?;
                 xpub = xpub
-                    .ckd_pub(&secp256k1::SECP256K1, child_index)
+                    .ckd_pub(secp256k1::SECP256K1, child_index)
                     .context("child derivation")?;
             }
 
@@ -138,7 +138,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
             .map(bitcoin::TapNodeHash::assume_hidden);
 
         let (pk, _) =
-            bitcoin::key::TapTweak::tap_tweak(pk, &secp256k1::SECP256K1, taproot_merkle_root);
+            bitcoin::key::TapTweak::tap_tweak(pk, secp256k1::SECP256K1, taproot_merkle_root);
 
         let mut signature = [0u8; 64];
         assert_eq!(signature.len(), Signature::<Self>::serialized_len());
@@ -193,5 +193,5 @@ pub fn derive_child_key<E: Curve, HdAlgo: givre::hd_wallet::HdWallet<E>>(
         derivation_path.iter().map(|i| (*i).try_into()),
     )
     .context("invalid path")?;
-    Ok(NonZero::from_point(child_epk.public_key).context("derived key is zero")?)
+    NonZero::from_point(child_epk.public_key).context("derived key is zero")
 }

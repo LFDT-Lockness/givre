@@ -22,7 +22,7 @@ use super::{round1::PublicCommitments, round2::SigShare, utils};
     serde(bound = "")
 )]
 /// Schnorr Signature
-pub struct Signature<C: Ciphersuite + ?Sized> {
+pub struct Signature<C: Ciphersuite> {
     /// $R$ component of the signature
     pub r: crate::ciphersuite::NormalizedPoint<C, Point<C::Curve>>,
     /// $z$ component of the signature

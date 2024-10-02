@@ -194,6 +194,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn signing<C, M>(
     party: M,
     rng: &mut (impl RngCore + CryptoRng),

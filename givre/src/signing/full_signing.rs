@@ -309,9 +309,11 @@ enum SigningOutput<C: Ciphersuite> {
 
 /// Interactive Signing error
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 pub struct FullSigningError(Reason);
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum Reason {
     NonTaprootCiphersuite,
     NOverflowsU16,
@@ -324,6 +326,7 @@ enum Reason {
 }
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum IoError {
     Send(Box<dyn crate::error::StdError + Send + Sync>),
     Recv(Box<dyn crate::error::StdError + Send + Sync>),
@@ -339,6 +342,7 @@ impl IoError {
 }
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum Bug {
     UnexpectedOutput,
     AdditiveShiftWithoutHdFeature,

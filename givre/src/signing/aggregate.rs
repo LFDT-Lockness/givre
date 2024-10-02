@@ -183,6 +183,7 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
     ///
     /// CAUTION: additive shift MUST BE derived from the extended public key obtained from
     /// the key share which is used for signing by calling [`utils::derive_additive_shift`].
+    #[cfg(feature = "hd-wallet")]
     pub(crate) fn dangerous_set_hd_additive_shift(
         mut self,
         hd_additive_shift: Scalar<C::Curve>,

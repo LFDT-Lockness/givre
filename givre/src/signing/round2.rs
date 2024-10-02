@@ -135,6 +135,7 @@ impl<'a, C: Ciphersuite> SigningOptions<'a, C> {
     ///
     /// CAUTION: additive shift MUST BE derived from the extended public key obtained from
     /// the key share which is used for signing by calling [`utils::derive_additive_shift`].
+    #[cfg(feature = "hd-wallet")]
     pub(crate) fn dangerous_set_hd_additive_shift(
         mut self,
         hd_additive_shift: Scalar<C::Curve>,
@@ -450,6 +451,7 @@ fn normalize_key_share<C: Ciphersuite>(
 pub struct SigningError(Reason);
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum Reason {
     #[cfg(feature = "taproot")]
     MissingTaprootMerkleRoot,

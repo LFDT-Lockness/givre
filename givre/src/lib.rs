@@ -204,6 +204,9 @@ pub mod key_share {
 }
 
 mod error {
+    // It's currently only needed in full signing, but better keep it always in the code
+    #![cfg_attr(not(feature = "full-signing"), allow(dead_code, unused_imports))]
+
     #[cfg(feature = "std")]
     pub use std::error::Error as StdError;
 

@@ -130,7 +130,7 @@ impl<'a, C: Ciphersuite> AggregateOptions<'a, C> {
     /// Specifies HD derivation path
     ///
     /// Uses default HD derivation algorithm defined for the ciphersuite in [`Ciphersuite::HdAlgo`].
-    /// If you need to use another algorithm, use [`set_derivation_path_with_algo`].
+    /// If you need to use another algorithm, use [`AggregateOptions::set_derivation_path_with_algo`].
     ///
     /// If called twice, the second call overwrites the first.
     ///

@@ -17,6 +17,7 @@ impl Ciphersuite for Bitcoin {
 
     const IS_TAPROOT: bool = true;
 
+    #[cfg(feature = "hd-wallet")]
     type HdAlgo = hd_wallet::Slip10;
 
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {

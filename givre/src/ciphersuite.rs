@@ -54,6 +54,7 @@ pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
     const IS_TAPROOT: bool = false;
 
     /// HD derivation algorithm recommended to be used with this ciphersuite
+    #[cfg(feature = "hd-wallet")]
     type HdAlgo: hd_wallet::HdWallet<Self::Curve>;
 
     /// `H1` hash function as defined in the draft

@@ -82,3 +82,9 @@ jobs:
         cache-on-failure: "true"
     - name: Check docs
       run: RUSTDOCFLAGS="--cfg docsrs -D warnings" cargo +nightly doc --workspace --all-features --no-deps
+  check-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check changelogs
+      run: ./.github/changelog.sh

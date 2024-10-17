@@ -14,6 +14,9 @@ impl Ciphersuite for Ed25519 {
     type Digest = sha2::Sha512;
     type MultiscalarMul = generic_ec::multiscalar::Dalek;
 
+    #[cfg(feature = "hd-wallet")]
+    type HdAlgo = hd_wallet::Edwards;
+
     fn h1(msg: &[&[u8]]) -> generic_ec::Scalar<Self::Curve> {
         let mut hash = sha2::Sha512::new()
             .chain_update(Self::NAME)

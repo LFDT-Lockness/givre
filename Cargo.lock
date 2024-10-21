@@ -165,7 +165,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "cggmp21-keygen"
 version = "0.4.0"
-source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#74d15b30b1c45d32d5cbe74d528f5295002250a4"
+source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#0ea8785069539c6d9e563711cb6d5e097b55aecd"
 dependencies = [
  "digest",
  "displaydoc",
@@ -672,8 +672,9 @@ dependencies = [
 
 [[package]]
 name = "hd-wallet"
-version = "0.5.0"
-source = "git+https://github.com/LFDT-Lockness/slip-10?branch=eddsa-support#1454f6c3a288a02eb66443b6ab08f9868b687b96"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4111172d55e2217d689df0fc9038cbd65826dd842ac5df9a04363accfa0769a3"
 dependencies = [
  "generic-array",
  "generic-ec",
@@ -746,7 +747,7 @@ dependencies = [
 [[package]]
 name = "key-share"
 version = "0.5.0"
-source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#74d15b30b1c45d32d5cbe74d528f5295002250a4"
+source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#0ea8785069539c6d9e563711cb6d5e097b55aecd"
 dependencies = [
  "displaydoc",
  "generic-ec",

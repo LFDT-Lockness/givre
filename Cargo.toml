@@ -9,10 +9,3 @@ exclude = [
   "wasm/no_std",
 ]
 
-[patch.crates-io.key-share]
-git = "https://github.com/LFDT-Lockness/cggmp21"
-branch = "update-hd-wallet"
-
-[patch.crates-io.cggmp21-keygen]
-git = "https://github.com/LFDT-Lockness/cggmp21"
-branch = "update-hd-wallet"

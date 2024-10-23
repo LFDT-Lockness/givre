@@ -38,7 +38,8 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "cggmp21-keygen"
 version = "0.4.0"
-source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#0ea8785069539c6d9e563711cb6d5e097b55aecd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "035c720da632d7303d2286f9ba4923dfba646f99465695ef21fc72b9e330476f"
 dependencies = [
  "digest",
  "displaydoc",
@@ -471,7 +472,8 @@ dependencies = [
 [[package]]
 name = "key-share"
 version = "0.5.0"
-source = "git+https://github.com/LFDT-Lockness/cggmp21?branch=update-hd-wallet#0ea8785069539c6d9e563711cb6d5e097b55aecd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ea364cb2397405d8c79afd3de173ca7e2e1d83a4ddd94d359263480ad96f06f"
 dependencies = [
  "displaydoc",
  "generic-ec",

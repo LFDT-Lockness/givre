@@ -129,19 +129,19 @@ pub fn share_preimage<E: generic_ec::Curve>(
     }
 }
 
-#[cfg(feature = "hd-wallets")]
-pub fn derive_additive_shift<E: generic_ec::Curve, Index>(
-    mut epub: slip_10::ExtendedPublicKey<E>,
+#[cfg(feature = "hd-wallet")]
+pub fn derive_additive_shift<E: generic_ec::Curve, Hd: hd_wallet::DeriveShift<E>, Index>(
+    mut epub: hd_wallet::ExtendedPublicKey<E>,
     path: impl IntoIterator<Item = Index>,
-) -> Result<Scalar<E>, <Index as TryInto<slip_10::NonHardenedIndex>>::Error>
+) -> Result<Scalar<E>, <Index as TryInto<hd_wallet::NonHardenedIndex>>::Error>
 where
-    slip_10::NonHardenedIndex: TryFrom<Index>,
+    hd_wallet::NonHardenedIndex: TryFrom<Index>,
 {
     let mut additive_shift = Scalar::<E>::zero();
 
     for child_index in path {
-        let child_index: slip_10::NonHardenedIndex = child_index.try_into()?;
-        let shift = slip_10::derive_public_shift(&epub, child_index);
+        let child_index: hd_wallet::NonHardenedIndex = child_index.try_into()?;
+        let shift = Hd::derive_public_shift(&epub, child_index);
 
         additive_shift += shift.shift;
         epub = shift.child_public_key;

@@ -64,16 +64,43 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
 
     /// Specifies HD derivation path
     ///
+    /// Uses default HD derivation algorithm defined for the ciphersuite in [`Ciphersuite::HdAlgo`].
+    /// If you need to use another algorithm, use [`SigningBuilder::set_derivation_path_with_algo`].
+    ///
     /// If called twice, the second call overwrites the first.
     ///
     /// Returns error if the key doesn't support HD derivation, or if the path is invalid
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     pub fn set_derivation_path<Index>(
+        self,
+        path: impl IntoIterator<Item = Index>,
+    ) -> Result<
+        Self,
+        crate::key_share::HdError<<hd_wallet::NonHardenedIndex as TryFrom<Index>>::Error>,
+    >
+    where
+        hd_wallet::NonHardenedIndex: TryFrom<Index>,
+    {
+        self.set_derivation_path_with_algo::<C::HdAlgo, _>(path)
+    }
+
+    /// Specifies HD derivation path
+    ///
+    /// Uses HD derivation algorithm defined by [`hd_wallet::HdWallet`] trait.
+    ///
+    /// If called twice, the second call overwrites the first.
+    ///
+    /// Returns error if the key doesn't support HD derivation, or if the path is invalid
+    #[cfg(feature = "hd-wallet")]
+    pub fn set_derivation_path_with_algo<HdAlgo: hd_wallet::HdWallet<C::Curve>, Index>(
         mut self,
         path: impl IntoIterator<Item = Index>,
-    ) -> Result<Self, crate::key_share::HdError<<slip_10::NonHardenedIndex as TryFrom<Index>>::Error>>
+    ) -> Result<
+        Self,
+        crate::key_share::HdError<<hd_wallet::NonHardenedIndex as TryFrom<Index>>::Error>,
+    >
     where
-        slip_10::NonHardenedIndex: TryFrom<Index>,
+        hd_wallet::NonHardenedIndex: TryFrom<Index>,
     {
         use crate::key_share::HdError;
 
@@ -81,8 +108,8 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
             .key_share
             .extended_public_key()
             .ok_or(HdError::DisabledHd)?;
-        let additive_shift =
-            utils::derive_additive_shift(public_key, path).map_err(HdError::InvalidPath)?;
+        let additive_shift = utils::derive_additive_shift::<C::Curve, HdAlgo, _>(public_key, path)
+            .map_err(HdError::InvalidPath)?;
         self.hd_additive_shift = Some(additive_shift);
         Ok(self)
     }
@@ -167,6 +194,7 @@ impl<'a, C: Ciphersuite> SigningBuilder<'a, C> {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn signing<C, M>(
     party: M,
     rng: &mut (impl RngCore + CryptoRng),
@@ -220,11 +248,11 @@ where
 
     let mut options =
         crate::signing::round2::SigningOptions::<C>::new(key_share, nonces, msg, &signers_list);
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     if let Some(additive_shift) = hd_additive_shift {
         options = options.dangerous_set_hd_additive_shift(additive_shift);
     }
-    if cfg!(not(feature = "hd-wallets")) && hd_additive_shift.is_some() {
+    if cfg!(not(feature = "hd-wallet")) && hd_additive_shift.is_some() {
         return Err(Bug::AdditiveShiftWithoutHdFeature.into());
     }
     #[cfg(feature = "taproot")]
@@ -259,7 +287,7 @@ where
     let key_info: &KeyInfo<_> = key_share.as_ref();
     let mut options =
         crate::signing::aggregate::AggregateOptions::new(key_info, &signers_list, msg);
-    #[cfg(feature = "hd-wallets")]
+    #[cfg(feature = "hd-wallet")]
     if let Some(additive_shift) = hd_additive_shift {
         options = options.dangerous_set_hd_additive_shift(additive_shift);
     }
@@ -281,9 +309,11 @@ enum SigningOutput<C: Ciphersuite> {
 
 /// Interactive Signing error
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 pub struct FullSigningError(Reason);
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum Reason {
     NonTaprootCiphersuite,
     NOverflowsU16,
@@ -296,6 +326,7 @@ enum Reason {
 }
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum IoError {
     Send(Box<dyn crate::error::StdError + Send + Sync>),
     Recv(Box<dyn crate::error::StdError + Send + Sync>),
@@ -311,6 +342,7 @@ impl IoError {
 }
 
 #[derive(Debug)]
+#[cfg_attr(not(feature = "std"), allow(dead_code))]
 enum Bug {
     UnexpectedOutput,
     AdditiveShiftWithoutHdFeature,

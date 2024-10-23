@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use givre::{
-    generic_ec::{NonZero, Point},
+    generic_ec::{Curve, NonZero, Point},
     signing::aggregate::Signature,
     Ciphersuite,
 };
@@ -9,9 +9,6 @@ pub trait ExternalVerifier: Ciphersuite {
     /// Although Schnorr scheme can sign messages of arbitrary size, external verifier may require that
     /// the message needs to be an output of a hash function with fixed size
     const REQUIRED_MESSAGE_SIZE: Option<usize> = None;
-
-    /// Indicates whether external lib supports HD derivation
-    const SUPPORTS_HD: bool = false;
 
     /// Verifies signature using external library
     ///
@@ -43,21 +40,28 @@ pub struct InvalidSignature;
 impl ExternalVerifier for givre::ciphersuite::Ed25519 {
     fn verify_sig(
         pk: &NonZero<Point<Self::Curve>>,
-        _chain_code: Option<[u8; 32]>,
+        chain_code: Option<[u8; 32]>,
         hd_derivation_path: &[u32],
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         sig: &Signature<Self>,
         msg: &[u8],
     ) -> Result<()> {
-        if !hd_derivation_path.is_empty() {
-            anyhow::bail!("HD derivation is not supported by ed25519_dalek")
-        }
         if taproot_merkle_root.is_some() {
             anyhow::bail!("taproot is not compatible with EdDSA")
         }
 
+        let pk = if !hd_derivation_path.is_empty() {
+            derive_child_key::<_, Self::HdAlgo>(
+                pk,
+                chain_code.context("missing chain code")?,
+                hd_derivation_path,
+            )?
+        } else {
+            *pk
+        };
+
         let pk = ed25519::VerifyingKey::from_bytes(
-            &Self::serialize_point(pk)
+            &Self::serialize_point(&pk)
                 .as_bytes()
                 .try_into()
                 .expect("wrong size of pk"),
@@ -76,16 +80,13 @@ impl ExternalVerifier for givre::ciphersuite::Secp256k1 {
     fn verify_sig(
         _pk: &NonZero<Point<Self::Curve>>,
         _chain_code: Option<[u8; 32]>,
-        hd_derivation_path: &[u32],
+        _hd_derivation_path: &[u32],
         taproot_merkle_root: Option<Option<[u8; 32]>>,
         _sig: &Signature<Self>,
         _msg: &[u8],
     ) -> Result<()> {
-        if !hd_derivation_path.is_empty() {
-            anyhow::bail!("HD derivation is not supported by ed25519_dalek")
-        }
         if taproot_merkle_root.is_some() {
-            anyhow::bail!("taproot is not compatible with EdDSA")
+            anyhow::bail!("taproot is not compatible with Secp256k1 ciphersuite")
         }
 
         // No external verifier for secp256k1 ciphersuite
@@ -123,7 +124,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
                 let child_index = bitcoin::bip32::ChildNumber::from_normal_idx(child_index)
                     .context("only non-hardened derivation is supported")?;
                 xpub = xpub
-                    .ckd_pub(&secp256k1::SECP256K1, child_index)
+                    .ckd_pub(secp256k1::SECP256K1, child_index)
                     .context("child derivation")?;
             }
 
@@ -137,7 +138,7 @@ impl ExternalVerifier for givre::ciphersuite::Bitcoin {
             .map(bitcoin::TapNodeHash::assume_hidden);
 
         let (pk, _) =
-            bitcoin::key::TapTweak::tap_tweak(pk, &secp256k1::SECP256K1, taproot_merkle_root);
+            bitcoin::key::TapTweak::tap_tweak(pk, secp256k1::SECP256K1, taproot_merkle_root);
 
         let mut signature = [0u8; 64];
         assert_eq!(signature.len(), Signature::<Self>::serialized_len());
@@ -168,7 +169,29 @@ pub fn random_taproot_merkle_root(rng: &mut impl rand::Rng) -> Option<[u8; 32]> 
 /// between 0 to 3 indexes
 pub fn random_hd_path(rng: &mut impl rand::Rng) -> Vec<u32> {
     let len = rng.gen_range(0..=3);
-    std::iter::repeat_with(|| rng.gen_range(0..slip_10::H))
+    std::iter::repeat_with(|| rng.gen_range(0..givre::hd_wallet::H))
         .take(len)
         .collect()
+}
+
+/// Derives an HD child key using `HdAlgo` algorithm
+///
+/// It's not desirable to use this function. In the tests, we should rather use other libraries
+/// from what we use in `givre` implementation itself. However, not all derivation methods have
+/// other libraries than `hd_wallet`
+pub fn derive_child_key<E: Curve, HdAlgo: givre::hd_wallet::HdWallet<E>>(
+    parent_pk: &NonZero<Point<E>>,
+    parent_child_code: [u8; 32],
+    derivation_path: &[u32],
+) -> Result<NonZero<Point<E>>> {
+    let parent_epk = givre::hd_wallet::ExtendedPublicKey {
+        public_key: **parent_pk,
+        chain_code: parent_child_code,
+    };
+    let child_epk = HdAlgo::try_derive_child_public_key_with_path(
+        &parent_epk,
+        derivation_path.iter().map(|i| (*i).try_into()),
+    )
+    .context("invalid path")?;
+    NonZero::from_point(child_epk.public_key).context("derived key is zero")
 }

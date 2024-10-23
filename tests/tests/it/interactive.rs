@@ -36,11 +36,12 @@ mod generic {
                     if let Some(t) = t {
                         givre::keygen::<C::Curve>(eid, j, n)
                             .set_threshold(t)
-                            .hd_wallet(C::SUPPORTS_HD)
+                            .hd_wallet(true)
                             .start(&mut rng, party_threshold)
                             .await
                     } else {
                         givre::keygen(eid, j, n)
+                            .hd_wallet(true)
                             .start(&mut rng, party_nonthreshold)
                             .await
                     }
@@ -63,11 +64,7 @@ mod generic {
         println!("message to sign: {}", hex::encode(msg));
 
         // HD derivation path
-        let derivation_path = if C::SUPPORTS_HD {
-            givre_tests::random_hd_path(&mut rng)
-        } else {
-            vec![]
-        };
+        let derivation_path = givre_tests::random_hd_path(&mut rng);
         println!("HD path: {derivation_path:?}");
 
         // Taproot merkle root

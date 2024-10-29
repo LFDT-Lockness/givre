@@ -56,11 +56,7 @@ mod generic {
         println!("message to sign: {}", hex::encode(&message));
 
         // HD derivation path
-        let derivation_path = if C::SUPPORTS_HD {
-            givre_tests::random_hd_path(&mut rng)
-        } else {
-            vec![]
-        };
+        let derivation_path = givre_tests::random_hd_path(&mut rng);
         println!("HD path: {derivation_path:?}");
 
         // Taproot merkle root

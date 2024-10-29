@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.3", default-features = false, optional = true }
-key-share = { version = "0.4.1", default-features = false }
+cggmp21-keygen = { version = "0.4", default-features = false, optional = true }
+key-share = { version = "0.5", default-features = false }
 
 generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
 
@@ -22,7 +22,7 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
-slip-10 = { version = "0.4", default-features = false, optional = true }
+hd-wallet = { version = "0.5", default-features = false, optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
@@ -36,7 +36,7 @@ std = [
   "cggmp21-keygen?/std",
   "round-based?/std",
   "serde?/std",
-  "slip-10?/std"
+  "hd-wallet?/std"
 ]
 
 cggmp21-keygen = ["dep:cggmp21-keygen"]
@@ -46,11 +46,11 @@ serde = ["dep:serde", "key-share/serde"]
 
 spof = ["key-share/spof"]
 
-hd-wallets = ["slip-10", "key-share/hd-wallets", "cggmp21-keygen?/hd-wallets"]
+hd-wallet = ["dep:hd-wallet", "key-share/hd-wallet", "cggmp21-keygen?/hd-wallet"]
 taproot = ["sha2"]
 
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]
-ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "k256", "sha2", "static_assertions"]
-ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "sha2"]
-ciphersuite-bitcoin = ["ciphersuite-secp256k1", "taproot"]
+ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "hd-wallet?/curve-secp256k1", "k256", "sha2", "static_assertions"]
+ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "hd-wallet?/curve-ed25519", "sha2"]
+ciphersuite-bitcoin = ["ciphersuite-secp256k1", "hd-wallet?/curve-secp256k1", "taproot"]
 

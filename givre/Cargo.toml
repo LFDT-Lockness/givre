@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 description = "TSS Schnorr/EdDSA implementation based on FROST"
 repository = "https://github.com/LFDT-Lockness/givre"
 categories = ["algorithms", "cryptography"]
-keywords = ["mpc", "threshold-signatures", "tss"]
+keywords = ["mpc", "threshold-signatures", "tss", "schnorr", "eddsa"]
 readme = "../README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

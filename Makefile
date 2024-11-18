@@ -10,7 +10,7 @@ docs-private:
 	RUSTDOCFLAGS="--html-in-header katex-header.html --cfg docsrs" cargo +nightly doc --no-deps --all-features --document-private-items
 
 readme:
-	cargo readme --no-title -r givre -i src/lib.rs \
+	cargo readme --no-title --no-license -r givre -i src/lib.rs \
 		| sed -E 's/(\/\*.+\*\/)/\1;/' \
 		| sed -E '/^\[`.+`\]:/d' \
 		| sed -E 's/\[`([^`]*)`\]\(.+?\)/`\1`/g' \

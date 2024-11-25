@@ -1,6 +1,6 @@
 [package]
 name = "givre"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "TSS Schnorr/EdDSA implementation based on FROST"
@@ -60,3 +60,6 @@ ciphersuite-secp256k1 = ["generic-ec/curve-secp256k1", "hd-wallet?/curve-secp256
 ciphersuite-ed25519 = ["generic-ec/curve-ed25519", "hd-wallet?/curve-ed25519", "sha2"]
 ciphersuite-bitcoin = ["ciphersuite-secp256k1", "hd-wallet?/curve-secp256k1", "taproot"]
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]

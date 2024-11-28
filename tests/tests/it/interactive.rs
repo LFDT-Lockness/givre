@@ -1,4 +1,4 @@
-#[generic_tests::define(attrs(test_case::case, tokio::test))]
+#[generic_tests::define(attrs(test_case::case))]
 mod generic {
     use anyhow::Context;
     use givre::Ciphersuite;
@@ -11,8 +11,7 @@ mod generic {
     #[test_case::case(Some(3), 5; "t3n5")]
     #[test_case::case(Some(5), 5; "t5n5")]
     #[test_case::case(None, 5; "n5")]
-    #[tokio::test]
-    async fn keygen_sign<C: Ciphersuite + ExternalVerifier>(t: Option<u16>, n: u16) {
+    fn keygen_sign<C: Ciphersuite + ExternalVerifier>(t: Option<u16>, n: u16) {
         let mut rng = rand_dev::DevRng::new();
 
         // --- Keygen

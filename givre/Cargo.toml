@@ -12,15 +12,15 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.4", default-features = false, optional = true }
-key-share = { version = "0.5", default-features = false }
+cggmp21-keygen = { version = "0.5", default-features = false, optional = true }
+key-share = { version = "0.6", default-features = false }
 
 generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }
 
-round-based = { version = "0.3", default-features = false, features = ["derive"], optional = true }
+round-based = { workspace = true, features = ["derive"], optional = true }
 
 k256 = { version = "0.13", default-features = false, features = ["hash2curve"], optional = true }
 static_assertions = { version = "1.1", optional = true }
@@ -28,7 +28,7 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
-hd-wallet = { version = "0.5", default-features = false, optional = true }
+hd-wallet = { version = "0.6", default-features = false, optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }

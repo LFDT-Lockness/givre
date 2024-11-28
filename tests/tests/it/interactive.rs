@@ -1,7 +1,5 @@
 #[generic_tests::define(attrs(test_case::case, tokio::test))]
 mod generic {
-    use std::iter;
-
     use anyhow::Context;
     use givre::Ciphersuite;
     use givre_tests::ExternalVerifier;
@@ -21,37 +19,34 @@ mod generic {
         let eid: [u8; 32] = rng.gen();
         let eid = givre::keygen::ExecutionId::new(&eid);
 
-        let mut simulation_threshold = round_based::simulation::Simulation::new();
-        let mut simulation_nonthreshold = round_based::simulation::Simulation::new();
-        let keygen_executions = (0..n)
-            .zip(iter::repeat_with(|| {
-                (
-                    rng.fork(),
-                    simulation_threshold.add_party(),
-                    simulation_nonthreshold.add_party(),
-                )
-            }))
-            .map(
-                move |(j, (mut rng, party_threshold, party_nonthreshold))| async move {
-                    if let Some(t) = t {
-                        givre::keygen::<C::Curve>(eid, j, n)
-                            .set_threshold(t)
-                            .hd_wallet(true)
-                            .start(&mut rng, party_threshold)
-                            .await
-                    } else {
-                        givre::keygen(eid, j, n)
-                            .hd_wallet(true)
-                            .start(&mut rng, party_nonthreshold)
-                            .await
-                    }
-                },
-            );
+        let mut sim_threshold = round_based::simulation::Simulation::with_capacity(n);
+        let mut sim_nonthreshold = round_based::simulation::Simulation::with_capacity(n);
+        for j in 0..n {
+            let mut rng = rng.fork();
+            if let Some(t) = t {
+                sim_threshold.add_async_party(|party| async move {
+                    givre::keygen::<C::Curve>(eid, j, n)
+                        .set_threshold(t)
+                        .hd_wallet(true)
+                        .start(&mut rng, party)
+                        .await
+                })
+            } else {
+                sim_nonthreshold.add_async_party(|party| async move {
+                    givre::keygen(eid, j, n)
+                        .hd_wallet(true)
+                        .start(&mut rng, party)
+                        .await
+                })
+            }
+        }
 
-        let key_shares: Vec<givre::KeyShare<C::Curve>> =
-            futures::future::try_join_all(keygen_executions)
-                .await
-                .unwrap();
+        let key_shares = if t.is_some() {
+            sim_threshold.run()
+        } else {
+            sim_nonthreshold.run()
+        };
+        let key_shares = key_shares.unwrap().expect_ok().into_vec();
         let pk = key_shares[0].shared_public_key;
 
         // --- Signing
@@ -87,32 +82,27 @@ mod generic {
             .collect::<Vec<_>>();
         let signers = signers.as_slice();
 
-        let mut simulation = round_based::simulation::Simulation::new();
-        let signing_executions = (0..t)
-            .zip(signers)
-            .zip(iter::repeat_with(|| (rng.fork(), simulation.add_party())))
-            .map(|((j, &index_at_keygen), (mut rng, party))| {
-                let key_share = &key_shares[usize::from(index_at_keygen)];
-                let derivation_path = &derivation_path;
-                async move {
-                    let mut signing = givre::signing::<C>(j, key_share, signers, msg);
-                    if !derivation_path.is_empty() {
-                        signing = signing
-                            .set_derivation_path(derivation_path.iter().copied())
-                            .context("set derivation path")?;
-                    }
-                    if let Some(root) = taproot_merkle_root {
-                        signing = signing.set_taproot_tweak(root).context("set merkle root")?
-                    }
-
-                    signing.sign(&mut rng, party).await.context("sign")
+        let sig = round_based::simulation::run_with_setup(signers, |j, party, &index_at_keygen| {
+            let key_share = &key_shares[usize::from(index_at_keygen)];
+            let derivation_path = &derivation_path;
+            let mut rng = rng.fork();
+            async move {
+                let mut signing = givre::signing::<C>(j, key_share, signers, msg);
+                if !derivation_path.is_empty() {
+                    signing = signing
+                        .set_derivation_path(derivation_path.iter().copied())
+                        .context("set derivation path")?;
                 }
-            });
+                if let Some(root) = taproot_merkle_root {
+                    signing = signing.set_taproot_tweak(root).context("set merkle root")?
+                }
 
-        let sigs: Vec<givre::signing::aggregate::Signature<_>> =
-            futures::future::try_join_all(signing_executions)
-                .await
-                .unwrap();
+                signing.sign(&mut rng, party).await.context("sign")
+            }
+        })
+        .unwrap()
+        .expect_ok()
+        .expect_eq();
 
         // Verify signature using external library
         C::verify_sig(
@@ -120,15 +110,10 @@ mod generic {
             key_shares[0].chain_code,
             &derivation_path,
             taproot_merkle_root,
-            &sigs[0],
+            &sig,
             msg,
         )
         .unwrap();
-
-        for sig in &sigs[1..] {
-            assert_eq!(sigs[0].r, sig.r);
-            assert_eq!(sigs[0].z, sig.z);
-        }
     }
 
     #[instantiate_tests(<givre::ciphersuite::Bitcoin>)]

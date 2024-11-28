@@ -86,6 +86,14 @@ impl<C: Ciphersuite> Signature<C> {
     }
 }
 
+impl<C: Ciphersuite> PartialEq for Signature<C> {
+    fn eq(&self, other: &Self) -> bool {
+        let Signature { r, z } = self;
+        *r == other.r && *z == other.z
+    }
+}
+impl<C: Ciphersuite> Eq for Signature<C> {}
+
 /// Aggregation options
 ///
 /// Like [`aggregate`] but allows to specify additional options like the HD derivation path

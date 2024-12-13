@@ -15,7 +15,7 @@ use crate::{ciphersuite::NormalizedPoint, Ciphersuite, SignerIndex};
 
 use super::{round1::PublicCommitments, round2::SigShare, utils};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),
@@ -85,14 +85,6 @@ impl<C: Ciphersuite> Signature<C> {
         Some(Self { r, z })
     }
 }
-
-impl<C: Ciphersuite> PartialEq for Signature<C> {
-    fn eq(&self, other: &Self) -> bool {
-        let Signature { r, z } = self;
-        *r == other.r && *z == other.z
-    }
-}
-impl<C: Ciphersuite> Eq for Signature<C> {}
 
 /// Aggregation options
 ///

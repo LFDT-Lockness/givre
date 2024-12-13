@@ -33,7 +33,7 @@ pub use secp256k1::Secp256k1;
 /// For the details, refer to [Section 6] of the draft
 ///
 /// [Section 6]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html#name-ciphersuites
-pub trait Ciphersuite: Sized + Clone + Copy + core::fmt::Debug {
+pub trait Ciphersuite: Sized + Clone + Copy + Eq + core::fmt::Debug {
     /// Name of the ciphersuite, also known as `contextString` in the draft
     const NAME: &'static str;
 
@@ -238,7 +238,7 @@ impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
 ///
 /// Point that satisfies [`Ciphersuite::is_normalized`]. Can wrap both `Point<E>` and
 /// `NonZero<Point<E>>`.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NormalizedPoint<C, P>(P, core::marker::PhantomData<C>);
 
 impl<C: Ciphersuite, P: AsRef<Point<C::Curve>>> NormalizedPoint<C, P> {
@@ -287,12 +287,6 @@ where
         self.0.as_ref()
     }
 }
-impl<C, P: core::cmp::PartialEq> core::cmp::PartialEq for NormalizedPoint<C, P> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-impl<C, P: core::cmp::Eq> core::cmp::Eq for NormalizedPoint<C, P> {}
 
 #[cfg(feature = "serde")]
 impl<C, P: serde::Serialize> serde::Serialize for NormalizedPoint<C, P> {

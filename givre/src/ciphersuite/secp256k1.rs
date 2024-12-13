@@ -4,7 +4,7 @@ use generic_ec::{NonZero, Point};
 use crate::Ciphersuite;
 
 /// FROST(secp256k1, SHA-256) ciphersuite
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Secp256k1;
 
 impl Ciphersuite for Secp256k1 {

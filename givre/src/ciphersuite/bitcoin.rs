@@ -6,7 +6,7 @@ use super::{Ciphersuite, Secp256k1};
 /// FROST ciphersuite that outputs [BIP-340] compliant signatures
 ///
 /// [BIP-340]: https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Bitcoin;
 
 impl Ciphersuite for Bitcoin {

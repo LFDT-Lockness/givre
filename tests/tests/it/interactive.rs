@@ -18,8 +18,8 @@ mod generic {
         let eid: [u8; 32] = rng.gen();
         let eid = givre::keygen::ExecutionId::new(&eid);
 
-        let mut sim_threshold = round_based::simulation::Simulation::with_capacity(n);
-        let mut sim_nonthreshold = round_based::simulation::Simulation::with_capacity(n);
+        let mut sim_threshold = round_based::sim::Simulation::with_capacity(n);
+        let mut sim_nonthreshold = round_based::sim::Simulation::with_capacity(n);
         for j in 0..n {
             let mut rng = rng.fork();
             if let Some(t) = t {
@@ -81,7 +81,7 @@ mod generic {
             .collect::<Vec<_>>();
         let signers = signers.as_slice();
 
-        let sig = round_based::simulation::run_with_setup(signers, |j, party, &index_at_keygen| {
+        let sig = round_based::sim::run_with_setup(signers, |j, party, &index_at_keygen| {
             let key_share = &key_shares[usize::from(index_at_keygen)];
             let derivation_path = &derivation_path;
             let mut rng = rng.fork();

@@ -40,9 +40,7 @@ default = ["std"]
 std = [
   "key-share/std",
   "cggmp21-keygen?/std",
-  "round-based?/std",
   "serde?/std",
-  "hd-wallet?/std"
 ]
 
 cggmp21-keygen = ["dep:cggmp21-keygen"]

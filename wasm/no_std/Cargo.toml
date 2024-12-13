@@ -17,19 +17,3 @@ features = [
   "hd-wallet",
   "taproot",
 ]
-
-[patch.crates-io.round-based]
-git = "https://github.com/lfdt-lockness/round-based"
-branch = "impr-sim"
-
-[patch.crates-io.cggmp21-keygen]
-git = "https://github.com/lfdt-lockness/cggmp21"
-branch = "update-hd-wallets"
-
-[patch.crates-io.key-share]
-git = "https://github.com/lfdt-lockness/cggmp21"
-branch = "update-hd-wallets"
-
-[patch.crates-io.hd-wallet]
-git = "https://github.com/lfdt-lockness/hd-wallet"
-branch = "dt"

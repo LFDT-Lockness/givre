@@ -204,7 +204,10 @@ impl<C: Ciphersuite<Curve = E>, E: Curve> AdditionalEntropy<C> for generic_ec::S
     }
 }
 impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for generic_ec::NonZero<T> {
-    type Bytes<'b> = <T as AdditionalEntropy<C>>::Bytes<'b> where Self: 'b;
+    type Bytes<'b>
+        = <T as AdditionalEntropy<C>>::Bytes<'b>
+    where
+        Self: 'b;
     fn to_bytes(&self) -> Self::Bytes<'_> {
         AdditionalEntropy::<C>::to_bytes(self.as_ref())
     }
@@ -222,7 +225,10 @@ impl<C: Ciphersuite, const N: usize> AdditionalEntropy<C> for [u8; N] {
     }
 }
 impl<C: Ciphersuite, T: AdditionalEntropy<C>> AdditionalEntropy<C> for &T {
-    type Bytes<'b> = <T as AdditionalEntropy<C>>::Bytes<'b> where Self: 'b;
+    type Bytes<'b>
+        = <T as AdditionalEntropy<C>>::Bytes<'b>
+    where
+        Self: 'b;
     fn to_bytes(&self) -> Self::Bytes<'_> {
         (*self).to_bytes()
     }

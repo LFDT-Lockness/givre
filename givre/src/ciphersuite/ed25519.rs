@@ -4,7 +4,7 @@ use generic_ec::{NonZero, Point};
 use crate::Ciphersuite;
 
 /// FROST(Ed25519, SHA-512) ciphersuite that produces Ed25519-compliant signatures
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Ed25519;
 
 impl Ciphersuite for Ed25519 {

@@ -290,7 +290,7 @@ fn ed25519() {
 
 fn mocked_randomness(bytes: &[u8]) -> impl RngCore + CryptoRng + '_ {
     struct MockedRng<'b>(&'b [u8]);
-    impl<'b> RngCore for MockedRng<'b> {
+    impl RngCore for MockedRng<'_> {
         fn fill_bytes(&mut self, dest: &mut [u8]) {
             let len = dest.len();
             let (randomness, leftover) = self.0.split_at(len);
@@ -309,7 +309,7 @@ fn mocked_randomness(bytes: &[u8]) -> impl RngCore + CryptoRng + '_ {
             Ok(())
         }
     }
-    impl<'b> CryptoRng for MockedRng<'b> {}
+    impl CryptoRng for MockedRng<'_> {}
 
     MockedRng(bytes)
 }

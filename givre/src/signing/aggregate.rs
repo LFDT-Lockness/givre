@@ -15,7 +15,7 @@ use crate::{ciphersuite::NormalizedPoint, Ciphersuite, SignerIndex};
 
 use super::{round1::PublicCommitments, round2::SigShare, utils};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(
     feature = "serde",
     derive(serde::Serialize, serde::Deserialize),

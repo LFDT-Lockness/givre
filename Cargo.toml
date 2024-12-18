@@ -9,3 +9,7 @@ exclude = [
   "wasm/no_std",
 ]
 
+[workspace.dependencies]
+givre = { path = "./givre" }
+
+round-based = { version = "0.4", default-features = false }

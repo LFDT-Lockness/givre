@@ -580,7 +580,7 @@ dependencies = [
 
 [[package]]
 name = "givre"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "cggmp21-keygen",
  "digest",

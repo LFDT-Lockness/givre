@@ -173,7 +173,7 @@
 #![deny(clippy::expect_used, clippy::unwrap_used, clippy::panic)]
 #![deny(missing_docs)]
 #![allow(clippy::type_complexity)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 
 #[cfg(feature = "std")]

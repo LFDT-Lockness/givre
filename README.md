@@ -1,7 +1,8 @@
 ![License](https://img.shields.io/crates/l/givre.svg)
 [![Docs](https://docs.rs/givre/badge.svg)](https://docs.rs/givre)
 [![Crates io](https://img.shields.io/crates/v/givre.svg)](https://crates.io/crates/givre)
-[![Discord](https://img.shields.io/discord/905194001349627914?logo=discord&logoColor=ffffff&label=Discord)](https://discordapp.com/channels/905194001349627914/1285268686147424388)
+[![Discord](https://img.shields.io/discord/905194001349627914?logo=discord&logoColor=ffffff&label=Discord)](https://discord.com/invite/hyperledger)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/LFDT-Lockness/givre/badge)](https://scorecard.dev/viewer/?uri=github.com/LFDT-Lockness/givre)
 
 ## Threshold Schnorr implementation based on [FROST IETF Draft][draft]
 
@@ -134,4 +135,4 @@ disabling `std` feature which is on by default.
 [draft]: https://www.ietf.org/archive/id/draft-irtf-cfrg-frost-15.html
 
 ## Join us in Discord!
-Feel free to reach out to us [in Discord](https://discordapp.com/channels/905194001349627914/1285268686147424388)!
+Feel free to reach out to us [in Discord](https://discord.com/invite/hyperledger)!

@@ -12,7 +12,7 @@ givre = { workspace = true, features = ["all-ciphersuites", "cggmp21-keygen", "s
 generic-tests = "0.1"
 test-case = "3.3"
 
-rand = "0.8"
+rand = "0.10"
 rand_core = "0.6"
 rand_dev = "0.1"
 

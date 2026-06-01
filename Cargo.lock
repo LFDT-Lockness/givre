@@ -134,11 +134,11 @@ checksum = "aaa8c850290c494f951abe0350e56c31e4f5664863490197490ff48cb825447d"
 dependencies = [
  "digest",
  "displaydoc",
- "generic-ec",
- "generic-ec-zkp",
- "hd-wallet",
+ "generic-ec 0.4.2",
+ "generic-ec-zkp 0.4.2",
+ "hd-wallet 0.6.0",
  "hex",
- "key-share",
+ "key-share 0.6.1",
  "rand_core",
  "round-based",
  "serde",
@@ -292,9 +292,9 @@ dependencies = [
 
 [[package]]
 name = "displaydoc"
-version = "0.2.4"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "487585f4d0c6655fe74905e2504d8ad6908e4db67f744eb140876906c2f3175d"
+checksum = "1ac70aa55017e108007fbaf5aa0f54b021c98f92ff8af59d42eda9da96e3dd4f"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -499,7 +499,7 @@ checksum = "750adbb28dfd2ed99334e36f16d878a8620839df430c0c4b0f745c3c48c2e22e"
 dependencies = [
  "curve25519-dalek",
  "digest",
- "generic-ec-core",
+ "generic-ec-core 0.2.0",
  "generic-ec-curves",
  "hex",
  "phantom-type 0.4.2",
@@ -509,6 +509,23 @@ dependencies = [
  "serde_with",
  "subtle",
  "udigest",
+ "zeroize",
+]
+
+[[package]]
+name = "generic-ec"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "508a3270730504f9a5cd1dcd7ac743cb06e9b414db28b3a835554bd1268ebd75"
+dependencies = [
+ "curve25519-dalek",
+ "generic-ec-core 0.3.0",
+ "hex",
+ "phantom-type 0.4.2",
+ "rand_core",
+ "serde",
+ "serde_with",
+ "subtle",
  "zeroize",
 ]
 
@@ -526,6 +543,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "generic-ec-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffea0573b3bdde9a0bbbf17433b19f9628942e075d723702c2f495f0a2f65268"
+dependencies = [
+ "generic-array",
+ "rand_core",
+ "serde",
+ "subtle",
+ "zeroize",
+]
+
+[[package]]
 name = "generic-ec-curves"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -533,7 +563,7 @@ checksum = "b5926949b758d01801c7edd75357495fe54c5fc25580a193de4c994c94d22307"
 dependencies = [
  "curve25519-dalek",
  "elliptic-curve",
- "generic-ec-core",
+ "generic-ec-core 0.2.0",
  "group",
  "k256",
  "rand_core",
@@ -549,7 +579,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec6e906724b1f70cd13e7e2455165300f1ef2fd200e40aa6207a046a36af839d"
 dependencies = [
  "generic-array",
- "generic-ec",
+ "generic-ec 0.4.2",
+ "rand_core",
+ "serde",
+ "subtle",
+ "udigest",
+]
+
+[[package]]
+name = "generic-ec-zkp"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b19b88bd3d9b24d30d21ee91c0feb9480e4fec008a1b8b9bf2c16e0afbf43a2e"
+dependencies = [
+ "generic-array",
+ "generic-ec 0.5.0",
  "rand_core",
  "serde",
  "subtle",
@@ -585,10 +629,10 @@ dependencies = [
  "cggmp21-keygen",
  "digest",
  "futures",
- "generic-ec",
- "hd-wallet",
+ "generic-ec 0.4.2",
+ "hd-wallet 0.6.0",
  "k256",
- "key-share",
+ "key-share 0.7.0",
  "rand_core",
  "round-based",
  "serde",
@@ -633,10 +677,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d1e8b25f89c813ea3f4317b86c1e89ecc86843601ca8657448e47e4f68f69af"
 dependencies = [
  "generic-array",
- "generic-ec",
+ "generic-ec 0.4.2",
  "hmac",
  "sha2",
  "subtle",
+]
+
+[[package]]
+name = "hd-wallet"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4acb098522f1e1b49854dd4c7b39b819669d35691446a5a01a082d1ecf25b72b"
+dependencies = [
+ "generic-ec 0.5.0",
 ]
 
 [[package]]
@@ -702,14 +755,30 @@ dependencies = [
 
 [[package]]
 name = "key-share"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ee8e510bb9f738ac400b7dedd98aeb23677c6b48cd3b1b682651ea5091f4282"
+checksum = "206b4474f861dedc6fc38e06f7c52c52f1e01180d5284aa62b58844a044fad7d"
 dependencies = [
  "displaydoc",
- "generic-ec",
- "generic-ec-zkp",
- "hd-wallet",
+ "generic-ec 0.4.2",
+ "generic-ec-zkp 0.4.2",
+ "hd-wallet 0.6.0",
+ "hex",
+ "serde",
+ "serde_with",
+ "thiserror 1.0.57",
+]
+
+[[package]]
+name = "key-share"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c6ef14aa29a4d7cac8026894c16821e6dee20bfa8c8f7bb9d2820e05e756652"
+dependencies = [
+ "displaydoc",
+ "generic-ec 0.5.0",
+ "generic-ec-zkp 0.5.0",
+ "hd-wallet 0.7.0",
  "hex",
  "rand_core",
  "serde",

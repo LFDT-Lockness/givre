@@ -28,7 +28,7 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
-hd-wallet = { version = "0.6", default-features = false, optional = true }
+hd-wallet = { version = "0.7", default-features = false, optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }

@@ -22,7 +22,7 @@ hex-literal = "0.4"
 round-based = { workspace = true, features = ["sim"] }
 
 ed25519 = { package = "ed25519-dalek", version = "2.1" }
-secp256k1 = { version = "0.29", features = ["global-context"] }
+secp256k1 = { version = "0.31", features = ["global-context"] }
 bitcoin = "0.32"
 
 anyhow = "1"

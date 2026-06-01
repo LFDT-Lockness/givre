@@ -17,7 +17,7 @@ rand_core = "0.6"
 rand_dev = "0.1"
 
 hex = "0.4"
-hex-literal = "0.4"
+hex-literal = "1.1"
 
 round-based = { workspace = true, features = ["sim"] }
 

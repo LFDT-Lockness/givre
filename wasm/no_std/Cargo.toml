@@ -12,7 +12,7 @@ features = [
   "all-ciphersuites",
   "spof",
   "serde",
-  "cggmp21-keygen",
+  "cggmp24-keygen",
   "full-signing",
   "hd-wallet",
   "taproot",

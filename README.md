@@ -12,7 +12,7 @@ signers to commit nonces ahead of time), and identifiable abort.
 This crate provides:
 * Distributed Key Generation (DKG) \
   FROST does not define DKG protocol to be used. We simply re-export DKG based on [CGGMP21] implementation
-  when `cggmp21-keygen` feature is enabled, which is a fairly reasonable choice as it's proven to be UC-secure.
+  when `cggmp24-keygen` feature is enabled, which is a fairly reasonable choice as it's proven to be UC-secure.
   Alternatively, you can use any other UC-secure DKG protocol.
 * FROST Signing \
   We provide API for both manual signing execution (for better flexibility and efficiency) and interactive protocol
@@ -31,7 +31,7 @@ The crate is wasm and no_std friendly.
 First of all, you need to generate a key. For that purpose, you can use any secure
 (preferably, UC-secure) DKG protocol. FROST IETF Draft does not define any DKG
 protocol or requirements it needs to meet, so the choice is up to you. This library
-re-exports CGGMP21 DKG from `cggmp21_keygen` crate when `cggmp21-keygen` feature
+re-exports CGGMP21 DKG from `cggmp24_keygen` crate when `cggmp24-keygen` feature
 is enabled which is proven to be UC-secure and should be a reasonable default.
 
 CGGMP21 DKG is an interactive protocol built on `round_based` framework. In order

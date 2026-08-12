@@ -1,6 +1,6 @@
 [package]
 name = "givre"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 description = "TSS Schnorr/EdDSA implementation based on FROST"
@@ -12,10 +12,10 @@ readme = "../README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cggmp21-keygen = { version = "0.5", default-features = false, optional = true }
-key-share = { version = "0.6", default-features = false }
+cggmp24-keygen = { version = "0.7.0-alpha.4", default-features = false, optional = true }
+key-share = { version = "0.7", default-features = false }
 
-generic-ec = { version = "0.4", default-features = false, features = ["alloc"] }
+generic-ec = { version = "0.5", default-features = false, features = ["alloc"] }
 
 rand_core = { version = "0.6", default-features = false }
 digest = { version = "0.10", default-features = false }
@@ -28,7 +28,7 @@ sha2 = { version = "0.10", default-features = false, optional = true }
 
 serde = { version = "1", default-features = false, features = ["derive"], optional = true }
 
-hd-wallet = { version = "0.6", default-features = false, optional = true }
+hd-wallet = { version = "0.7", default-features = false, optional = true }
 
 [dev-dependencies]
 rand_core = { version = "0.6", default-features = false, features = ["getrandom"] }
@@ -39,18 +39,18 @@ default = ["std"]
 
 std = [
   "key-share/std",
-  "cggmp21-keygen?/std",
+  "cggmp24-keygen?/std",
   "serde?/std",
 ]
 
-cggmp21-keygen = ["dep:cggmp21-keygen"]
+cggmp24-keygen = ["dep:cggmp24-keygen"]
 full-signing = ["round-based"]
 
 serde = ["dep:serde", "key-share/serde"]
 
 spof = ["key-share/spof"]
 
-hd-wallet = ["dep:hd-wallet", "key-share/hd-wallet", "cggmp21-keygen?/hd-wallet"]
+hd-wallet = ["dep:hd-wallet", "key-share/hd-wallet", "cggmp24-keygen?/hd-wallet"]
 taproot = ["sha2"]
 
 all-ciphersuites = ["ciphersuite-secp256k1", "ciphersuite-ed25519", "ciphersuite-bitcoin"]

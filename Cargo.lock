@@ -127,13 +127,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "cggmp21-keygen"
-version = "0.5.0"
+name = "cggmp24-keygen"
+version = "0.7.0-alpha.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aaa8c850290c494f951abe0350e56c31e4f5664863490197490ff48cb825447d"
+checksum = "da077669716f34714fd877b455dfd88116e0a4b5f6175c1cd1a33f8b537ba519"
 dependencies = [
  "digest",
  "displaydoc",
+ "futures-util",
  "generic-ec",
  "generic-ec-zkp",
  "hd-wallet",
@@ -493,9 +494,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec"
-version = "0.4.2"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "750adbb28dfd2ed99334e36f16d878a8620839df430c0c4b0f745c3c48c2e22e"
+checksum = "6d693ffb53818f267a4c20e06f161aee3569a4ebaec5b9105d2fd7490b79fb53"
 dependencies = [
  "curve25519-dalek",
  "digest",
@@ -514,9 +515,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-core"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f156564cc8aa47456da807826b1a0aa9cf420474d9f41593ffbdde65133d4bea"
+checksum = "ffea0573b3bdde9a0bbbf17433b19f9628942e075d723702c2f495f0a2f65268"
 dependencies = [
  "generic-array",
  "rand_core",
@@ -527,9 +528,9 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-curves"
-version = "0.2.1"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5926949b758d01801c7edd75357495fe54c5fc25580a193de4c994c94d22307"
+checksum = "ffbc925fd3e3679dc46eb028029be23f3eb215f9392847d10223d853a459ab3c"
 dependencies = [
  "curve25519-dalek",
  "elliptic-curve",
@@ -544,10 +545,11 @@ dependencies = [
 
 [[package]]
 name = "generic-ec-zkp"
-version = "0.4.2"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec6e906724b1f70cd13e7e2455165300f1ef2fd200e40aa6207a046a36af839d"
+checksum = "b19b88bd3d9b24d30d21ee91c0feb9480e4fec008a1b8b9bf2c16e0afbf43a2e"
 dependencies = [
+ "digest",
  "generic-array",
  "generic-ec",
  "rand_core",
@@ -580,9 +582,9 @@ dependencies = [
 
 [[package]]
 name = "givre"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
- "cggmp21-keygen",
+ "cggmp24-keygen",
  "digest",
  "futures",
  "generic-ec",
@@ -628,9 +630,9 @@ dependencies = [
 
 [[package]]
 name = "hd-wallet"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d1e8b25f89c813ea3f4317b86c1e89ecc86843601ca8657448e47e4f68f69af"
+checksum = "4acb098522f1e1b49854dd4c7b39b819669d35691446a5a01a082d1ecf25b72b"
 dependencies = [
  "generic-array",
  "generic-ec",
@@ -702,9 +704,9 @@ dependencies = [
 
 [[package]]
 name = "key-share"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ee8e510bb9f738ac400b7dedd98aeb23677c6b48cd3b1b682651ea5091f4282"
+checksum = "4c6ef14aa29a4d7cac8026894c16821e6dee20bfa8c8f7bb9d2820e05e756652"
 dependencies = [
  "displaydoc",
  "generic-ec",
@@ -894,9 +896,9 @@ dependencies = [
 
 [[package]]
 name = "round-based"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "079e623c882b5ec9c1a4140cb077179ea89f5352f85a7ebd879428c33ce66399"
+checksum = "da76edf50de0a9d6911fc79261bb04cc9f3f3a375e0201799f5edf58499af341"
 dependencies = [
  "futures-util",
  "phantom-type 0.3.1",
